@@ -14,11 +14,17 @@ growth.html         Goal/milestone tracker (planned → complete → approved), 
 reflections.html    Guided journal with stats, filters, edit
 resources.html      Program features + one-tap practice library
 connect.html        Interest form (posts to /api/interest)
-api/interest.js     Vercel serverless function → Airtable "Interest" table
-assets/app.js       Shared storage (localStorage), nav, toast, starter-goal engine
+404.html            Not-found page
+api/interest.js     Vercel serverless function → Airtable "Interest" table (upserts on Email)
+assets/app.js       Shared storage (localStorage), nav hydration, toast, starter-goal engine
 assets/styles.css   Design system (navy/teal/gold, Fraunces + Public Sans)
 assets/favicon.svg  Browser-tab icon
+vercel.json         Clean URLs (/journey, /growth, …) + security headers
+scripts/smoke.js    Headless-browser smoke test (also runs in GitHub Actions CI)
 ```
+
+Pages are served at clean URLs (`/journey`, not `/journey.html`) via `cleanUrls`
+in `vercel.json`; internal links use the clean form.
 
 ## Environment variables (Vercel project settings)
 
