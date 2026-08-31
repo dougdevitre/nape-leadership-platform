@@ -40,7 +40,7 @@ module.exports = async (req, res) => {
           fields: {
             Name: String(name).slice(0, 200),
             Email: String(email).slice(0, 200),
-            Role: role ? String(role) : undefined,
+            Role: role ? String(role).slice(0, 200) : undefined,
             Agency: agency ? String(agency).slice(0, 200) : undefined,
             Source: "nape-leadership-platform",
             Submitted: new Date().toISOString()
@@ -51,11 +51,14 @@ module.exports = async (req, res) => {
     });
 
     if (!r.ok) {
+      const detail = await r.text().catch(() => "");
+      console.error("Airtable rejected interest submission:", r.status, detail);
       res.status(502).json({ ok: false, error: "Could not save your submission. Please try again." });
       return;
     }
     res.status(200).json({ ok: true });
   } catch (e) {
+    console.error("Interest submission failed:", e);
     res.status(500).json({ ok: false, error: "Unexpected error. Please try again." });
   }
 };

@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Connect — NAPE Leadership</title>
+<meta name="description" content="Share your interest and be first to hear when the NAPE executive leadership experience launches.">
+<meta name="theme-color" content="#1E2E4F">
+<meta property="og:site_name" content="NAPE Executive Leadership Experience">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Connect — NAPE Leadership">
+<meta property="og:description" content="Share your interest and be first to hear when the NAPE executive leadership experience launches.">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -66,10 +73,12 @@ const confirmEl = document.getElementById("f-confirm");
 const afterEl = document.getElementById("f-after");
 const noteEl = document.getElementById("f-note");
 
-function showConfirm(name){
+function showConfirm(name, pending){
   formEl.style.display = "none";
   confirmEl.classList.add("show");
-  confirmEl.textContent = "Thanks, " + name + " — you're on the list. Watch for NAPE's formal launch announcement.";
+  confirmEl.textContent = pending
+    ? "Thanks, " + name + " — your info is saved on this device, but we couldn't reach NAPE just now. Please come back and resubmit so you don't miss the launch announcement."
+    : "Thanks, " + name + " — you're on the list. Watch for NAPE's formal launch announcement.";
   afterEl.style.display = "block";
 }
 
@@ -88,6 +97,11 @@ function showForm(){
 
 if (saved && saved.submitted) {
   showConfirm(saved.name || "friend");
+} else if (saved) {
+  // An earlier attempt never reached NAPE — prefill and ask them to resend.
+  showForm();
+  noteEl.textContent = "Your earlier submission didn't reach NAPE — please send it again.";
+  noteEl.style.color = "#A34B3D";
 }
 
 document.getElementById("f-update").addEventListener("click", showForm);
@@ -123,7 +137,7 @@ document.getElementById("f-submit").addEventListener("click", async () => {
       napeToast("You're on the list.");
     } else if (res.status === 503) {
       NAPE.set(NAPE.KEYS.PROFILE, { name, email, role, agency, submitted: false, at: Date.now() });
-      showConfirm(name);
+      showConfirm(name, true);
     } else {
       noteEl.textContent = (data && data.error) || "Something went wrong. Please try again.";
       noteEl.style.color = "#A34B3D";

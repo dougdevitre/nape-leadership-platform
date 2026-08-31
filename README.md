@@ -17,6 +17,7 @@ connect.html        Interest form (posts to /api/interest)
 api/interest.js     Vercel serverless function → Airtable "Interest" table
 assets/app.js       Shared storage (localStorage), nav, toast, starter-goal engine
 assets/styles.css   Design system (navy/teal/gold, Fraunces + Public Sans)
+assets/favicon.svg  Browser-tab icon
 ```
 
 ## Environment variables (Vercel project settings)

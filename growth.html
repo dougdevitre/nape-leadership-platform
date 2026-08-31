@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Growth Plan — NAPE Leadership</title>
+<meta name="description" content="Build a growth plan: set goals for each leadership stage and track milestones from planned to complete to approved.">
+<meta name="theme-color" content="#1E2E4F">
+<meta property="og:site_name" content="NAPE Executive Leadership Experience">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Growth Plan — NAPE Leadership">
+<meta property="og:description" content="Set goals for each leadership stage and track milestones from planned to complete to approved.">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -225,10 +232,42 @@ document.getElementById("import-file").addEventListener("change",(e)=>{
     try {
       const data = JSON.parse(reader.result);
       if(!data || !Array.isArray(data.goals)) throw new Error("bad shape");
+      // Normalize every goal/milestone so a hand-edited or partial file can't leave
+      // localStorage in a shape render() chokes on.
+      const goals = data.goals
+        .filter(g => g && typeof g === "object" && g.title)
+        .map(g => ({
+          id: g.id ? String(g.id) : napeUid(),
+          stage: NAPE_STAGES[g.stage] ? g.stage : "self",
+          title: String(g.title),
+          createdAt: typeof g.createdAt === "number" ? g.createdAt : Date.now(),
+          milestones: (Array.isArray(g.milestones) ? g.milestones : [])
+            .filter(m => m && m.text)
+            .map(m => {
+              const ms = {
+                id: m.id ? String(m.id) : napeUid(),
+                text: String(m.text),
+                status: ["planned","complete","approved"].includes(m.status) ? m.status : "planned"
+              };
+              if(ms.status !== "planned" && typeof m.completedAt === "number") ms.completedAt = m.completedAt;
+              if(ms.status === "approved"){
+                ms.approvedBy = m.approvedBy ? String(m.approvedBy) : "Self";
+                if(typeof m.approvedAt === "number") ms.approvedAt = m.approvedAt;
+              }
+              return ms;
+            })
+        }));
       if(!confirm("Replace your current plan with the imported one? This overwrites goals" + (Array.isArray(data.reflections)?", reflections":"") + (data.stage?", and stage":"") + " on this device.")) return;
-      NAPE.set(NAPE.KEYS.GOALS, data.goals);
-      if(Array.isArray(data.reflections)) NAPE.set(NAPE.KEYS.REFLECTIONS, data.reflections);
-      if(data.stage) NAPE.set(NAPE.KEYS.STAGE, data.stage);
+      NAPE.set(NAPE.KEYS.GOALS, goals);
+      if(Array.isArray(data.reflections)) NAPE.set(NAPE.KEYS.REFLECTIONS, data.reflections.filter(e => e && e.text).map(e => ({
+        id: e.id ? String(e.id) : napeUid(),
+        stage: NAPE_STAGES[e.stage] ? e.stage : "self",
+        prompt: e.prompt ? String(e.prompt) : "",
+        text: String(e.text),
+        at: typeof e.at === "number" ? e.at : Date.now(),
+        ...(typeof e.editedAt === "number" ? { editedAt: e.editedAt } : {})
+      })));
+      if(NAPE_STAGES[data.stage]) NAPE.set(NAPE.KEYS.STAGE, data.stage);
       render();
       napeToast("Plan imported.");
     } catch(err){
@@ -283,7 +322,7 @@ goalsEl.addEventListener("click",(e)=>{
     napeToast("Milestone approved" + (who ? " by " + who : "") + ".");
     return;
   }
-  if(act==="reset"){ m.status="planned"; delete m.approvedBy; save(goals); return; }
+  if(act==="reset"){ m.status="planned"; delete m.approvedBy; delete m.approvedAt; delete m.completedAt; save(goals); return; }
   if(act==="del-ms"){ g.milestones = g.milestones.filter(x=>x.id!==mid); save(goals); return; }
 });
 

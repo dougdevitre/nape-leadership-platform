@@ -169,14 +169,6 @@ function napeAddGoal(stage, title, milestones) {
   document.body.append(f);
 })();
 
-/* ---------- Mobile browser chrome color ---------- */
-(function () {
-  const m = document.createElement("meta");
-  m.name = "theme-color";
-  m.content = "#1E2E4F";
-  document.head.append(m);
-})();
-
 /* ---------- Helpers ---------- */
 function napeUid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
