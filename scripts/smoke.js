@@ -71,6 +71,15 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   const goalsText = await page.textContent("#goals");
   if (!goalsText.includes("no ms") || !goalsText.includes("ok")) throw new Error("imported goals not rendered");
 
+  // 2b. Journey stage tabs support arrow-key navigation
+  await page.goto(`http://localhost:${PORT}/journey`);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.focus('.stage-btn[data-stage="self"]');
+  await page.keyboard.press("ArrowRight");
+  if ((await page.getAttribute('.stage-btn[data-stage="others"]', "aria-selected")) !== "true")
+    throw new Error("stage tablist arrow-key navigation broken");
+
   // 3. Interest form: 503 shows the pending message, 200 shows success
   await page.route("**/api/interest", r => r.fulfill({ status: 503, contentType: "application/json", body: '{"ok":false,"error":"not_configured"}' }));
   await page.goto(`http://localhost:${PORT}/connect`);

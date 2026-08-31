@@ -117,20 +117,30 @@ function renderStage(key){
     napeToast(NAPE_STAGES[st].name + " starter goals added — open Growth Plan to work them.");
   });
 }
-stageBtns.forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    stageBtns.forEach(b=>b.setAttribute("aria-selected","false"));
-    btn.setAttribute("aria-selected","true");
-    renderStage(btn.dataset.stage);
+function selectStage(key){
+  stageBtns.forEach(b=>{
+    const sel = b.dataset.stage === key;
+    b.setAttribute("aria-selected", String(sel));
+    b.tabIndex = sel ? 0 : -1;
+  });
+  renderStage(key);
+}
+const tabs = Array.from(stageBtns);
+tabs.forEach((btn, i)=>{
+  btn.addEventListener("click",()=> selectStage(btn.dataset.stage));
+  btn.addEventListener("keydown",(e)=>{
+    const step = { ArrowRight:1, ArrowDown:1, ArrowLeft:-1, ArrowUp:-1 }[e.key];
+    let j = step !== undefined ? (i + step + tabs.length) % tabs.length : null;
+    if(e.key === "Home") j = 0;
+    if(e.key === "End") j = tabs.length - 1;
+    if(j === null) return;
+    e.preventDefault();
+    tabs[j].focus();
+    selectStage(tabs[j].dataset.stage);
   });
 });
 const savedStage = NAPE.get(NAPE.KEYS.STAGE, null);
-if (savedStage && NAPE_STAGES[savedStage]) {
-  stageBtns.forEach(b=>b.setAttribute("aria-selected", b.dataset.stage===savedStage ? "true":"false"));
-  renderStage(savedStage);
-} else {
-  renderStage("self");
-}
+selectStage(savedStage && NAPE_STAGES[savedStage] ? savedStage : "self");
 
 /* ---------------- Assessment ---------------- */
 const QUESTIONS = [
@@ -229,7 +239,8 @@ function tallyBars(t){
 
 function renderResult(){
   const t = tallyUp();
-  const winner = Object.keys(t).sort((a,b)=>t[b]-t[a])[0];
+  // Ties resolve to the earliest stage (self → others → org): start at the foundation.
+  const winner = ["self","others","org"].reduce((best,k)=> t[k] > t[best] ? k : best, "self");
   const r = RESULTS[winner];
   NAPE.set(NAPE.KEYS.STAGE, winner);
   quizCard.innerHTML = `
@@ -245,8 +256,7 @@ function renderResult(){
     qIndex = 0; answers = [];
     renderQuestion();
   });
-  stageBtns.forEach(b=>b.setAttribute("aria-selected", b.dataset.stage===winner ? "true":"false"));
-  renderStage(winner);
+  selectStage(winner);
   napeToast("Stage saved: " + r.name);
 }
 
