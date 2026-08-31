@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connect — NAPE Leadership</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<section style="padding-top:56px">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="banner-tag">Stay connected</span>
+      <h2>Be the first to know</h2>
+      <p>A formal launch announcement is coming soon. Share your interest and you'll hear from NAPE as the executive leadership experience develops.</p>
+    </div>
+    <div class="connect-card">
+      <div id="interest-form">
+        <div class="form-field">
+          <label for="f-name">Name</label>
+          <input id="f-name" type="text" autocomplete="name" placeholder="Your name" required>
+        </div>
+        <div class="form-field">
+          <label for="f-email">Email</label>
+          <input id="f-email" type="email" autocomplete="email" placeholder="you@agency.gov" required>
+        </div>
+        <div class="form-field">
+          <label for="f-role">Current role</label>
+          <select id="f-role">
+            <option value="">Select your role</option>
+            <option>Chief / Director</option>
+            <option>Deputy Chief / Deputy Director</option>
+            <option>Supervisor preparing for a senior role</option>
+            <option>Other probation professional</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="f-agency">Agency or jurisdiction</label>
+          <input id="f-agency" type="text" placeholder="e.g., County Probation Department">
+        </div>
+        <div style="position:absolute;left:-9999px" aria-hidden="true">
+          <label for="f-website">Website</label>
+          <input id="f-website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+        <button class="btn btn-gold" id="f-submit">Count me in</button>
+        <p class="connect-note" id="f-note">Your name and email are shared with NAPE so you can receive the launch announcement. Nothing else — no spam, no third parties.</p>
+      </div>
+      <div class="confirm" id="f-confirm"></div>
+      <div id="f-after" style="display:none;margin-top:14px">
+        <p class="connect-note" style="margin-top:0">What happens next: NAPE will announce the launch to this list first, including cohort dates and how to apply.</p>
+        <button class="btn btn-outline btn-small" id="f-update">Update my info</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="assets/app.js"></script>
+<script>
+const saved = NAPE.get(NAPE.KEYS.PROFILE, null);
+const formEl = document.getElementById("interest-form");
+const confirmEl = document.getElementById("f-confirm");
+const afterEl = document.getElementById("f-after");
+const noteEl = document.getElementById("f-note");
+
+function showConfirm(name){
+  formEl.style.display = "none";
+  confirmEl.classList.add("show");
+  confirmEl.textContent = "Thanks, " + name + " — you're on the list. Watch for NAPE's formal launch announcement.";
+  afterEl.style.display = "block";
+}
+
+function showForm(){
+  formEl.style.display = "block";
+  confirmEl.classList.remove("show");
+  afterEl.style.display = "none";
+  const p = NAPE.get(NAPE.KEYS.PROFILE, null);
+  if(p){
+    if(p.name) document.getElementById("f-name").value = p.name;
+    if(p.email) document.getElementById("f-email").value = p.email;
+    if(p.role) document.getElementById("f-role").value = p.role;
+    if(p.agency) document.getElementById("f-agency").value = p.agency;
+  }
+}
+
+if (saved && saved.submitted) {
+  showConfirm(saved.name || "friend");
+}
+
+document.getElementById("f-update").addEventListener("click", showForm);
+
+document.getElementById("f-submit").addEventListener("click", async () => {
+  const name = document.getElementById("f-name").value.trim();
+  const email = document.getElementById("f-email").value.trim();
+  const role = document.getElementById("f-role").value;
+  const agency = document.getElementById("f-agency").value.trim();
+  const website = document.getElementById("f-website").value;
+
+  if (!name || !email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    noteEl.textContent = "Please enter your name and a valid email address.";
+    noteEl.style.color = "#A34B3D";
+    return;
+  }
+
+  const btn = document.getElementById("f-submit");
+  btn.disabled = true;
+  btn.textContent = "Sending…";
+
+  try {
+    const res = await fetch("/api/interest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, role, agency, website })
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok && data.ok) {
+      NAPE.set(NAPE.KEYS.PROFILE, { name, email, role, agency, submitted: true, at: Date.now() });
+      showConfirm(name);
+      napeToast("You're on the list.");
+    } else if (res.status === 503) {
+      NAPE.set(NAPE.KEYS.PROFILE, { name, email, role, agency, submitted: false, at: Date.now() });
+      showConfirm(name);
+    } else {
+      noteEl.textContent = (data && data.error) || "Something went wrong. Please try again.";
+      noteEl.style.color = "#A34B3D";
+    }
+  } catch (e) {
+    noteEl.textContent = "Network issue — please try again.";
+    noteEl.style.color = "#A34B3D";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Count me in";
+  }
+});
+</script>
+</body>
+</html>

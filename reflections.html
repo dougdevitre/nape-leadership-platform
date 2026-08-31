@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reflections — NAPE Leadership</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<section style="padding-top:56px">
+  <div class="wrap" style="max-width:760px">
+    <div class="section-head">
+      <span class="banner-tag">Reflections</span>
+      <h2>Capture what you're learning</h2>
+      <p>Leadership growth compounds when you write it down. Entries are saved on this device only — this is your private space.</p>
+    </div>
+
+    <div class="prompt-card">
+      <p class="p-label" id="p-label">Prompt · Lead Self</p>
+      <p class="p-text" id="p-text"></p>
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-small" id="btn-next-prompt">Try another prompt</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="form-field">
+        <label for="r-stage">Stage</label>
+        <select id="r-stage">
+          <option value="self">Lead Self</option>
+          <option value="others">Lead Others</option>
+          <option value="org">Lead the Organization</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label for="r-text">Your reflection</label>
+        <textarea id="r-text" placeholder="What happened, what you noticed, and what you'll try next…"></textarea>
+        <p class="wc" id="r-wc">0 words</p>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-gold" id="r-save">Save reflection</button>
+        <button class="btn btn-outline btn-small" id="r-cancel" style="display:none">Cancel edit</button>
+      </div>
+    </div>
+
+    <div style="margin-top:40px">
+      <div class="filter-row">
+        <h2 style="font-size:1.35rem;margin:0;flex:1">Your entries</h2>
+        <select id="e-filter" aria-label="Filter entries by stage">
+          <option value="all">All stages</option>
+          <option value="self">Lead Self</option>
+          <option value="others">Lead Others</option>
+          <option value="org">Lead the Organization</option>
+        </select>
+      </div>
+      <p class="stats-line" id="e-stats"></p>
+      <div id="entries"></div>
+    </div>
+  </div>
+</section>
+
+<script src="assets/app.js"></script>
+<script>
+const PROMPTS = {
+  self: [
+    NAPE_STAGES.self.reflect,
+    "When did I feel most like myself as a leader this week — and what created that?",
+    "What am I avoiding right now, and what would courage look like?",
+    "Which of my strengths, overused, becomes a liability?"
+  ],
+  others: [
+    NAPE_STAGES.others.reflect,
+    "When did I last change my mind because of something a team member said?",
+    "Whose potential am I underestimating — and what would betting on them look like?",
+    "What did my team learn from how I handled the last hard moment?"
+  ],
+  org: [
+    NAPE_STAGES.org.reflect,
+    "What is my agency known for today — and what do I want it known for in three years?",
+    "Which decision am I holding that should belong to someone else?",
+    "What outside perspective have I not sought that could change my strategy?"
+  ]
+};
+
+const params = new URLSearchParams(location.search);
+let curStage = params.get("stage") || NAPE.get(NAPE.KEYS.STAGE, "self");
+if(!PROMPTS[curStage]) curStage = "self";
+let pIdx = 0;
+let editingId = null;
+let entryFilter = "all";
+
+const stageSel = document.getElementById("r-stage");
+const textEl = document.getElementById("r-text");
+const saveBtn = document.getElementById("r-save");
+const cancelBtn = document.getElementById("r-cancel");
+stageSel.value = curStage;
+
+function showPrompt(){
+  document.getElementById("p-label").textContent = "Prompt · " + NAPE_STAGES[curStage].name;
+  document.getElementById("p-text").textContent = PROMPTS[curStage][pIdx % PROMPTS[curStage].length];
+}
+document.getElementById("btn-next-prompt").addEventListener("click",()=>{ pIdx++; showPrompt(); });
+stageSel.addEventListener("change",()=>{ curStage = stageSel.value; pIdx = 0; showPrompt(); });
+showPrompt();
+
+textEl.addEventListener("input",()=>{
+  const words = textEl.value.trim() ? textEl.value.trim().split(/\s+/).length : 0;
+  document.getElementById("r-wc").textContent = words + " word" + (words===1?"":"s");
+});
+
+function loadEntries(){ return NAPE.get(NAPE.KEYS.REFLECTIONS, []); }
+
+function renderStats(){
+  const entries = loadEntries();
+  const el = document.getElementById("e-stats");
+  if(!entries.length){ el.textContent = ""; return; }
+  const last = Math.max(...entries.map(e=>e.at||0));
+  const month = new Date().getMonth(), year = new Date().getFullYear();
+  const thisMonth = entries.filter(e=>{ const d=new Date(e.at); return d.getMonth()===month && d.getFullYear()===year; }).length;
+  el.textContent = entries.length + " total · " + thisMonth + " this month · last entry " + napeDate(last);
+}
+
+function renderEntries(){
+  renderStats();
+  const all = loadEntries();
+  const entries = entryFilter==="all" ? all : all.filter(e=>e.stage===entryFilter);
+  const el = document.getElementById("entries");
+  if(!entries.length){
+    el.innerHTML = `<div class="empty-note">${all.length ? "No entries for this stage yet." : "No reflections yet. The first one is the hardest — and the shortest one still counts."}</div>`;
+    return;
+  }
+  el.innerHTML = entries.slice().reverse().map(en=>`
+    <div class="entry">
+      <div class="e-meta">
+        <span>${NAPE_STAGES[en.stage] ? NAPE_STAGES[en.stage].name : "General"} · ${napeDate(en.at)}${en.editedAt ? " · edited" : ""}</span>
+        <span style="display:flex;gap:8px">
+          <button class="link-btn" data-edit="${en.id}">Edit</button>
+          <button class="link-btn danger" data-del="${en.id}">Delete</button>
+        </span>
+      </div>
+      ${en.prompt ? `<p style="font-family:'Fraunces',serif;font-style:italic;color:var(--ink-soft);font-size:.9rem;margin-bottom:8px">${napeEscape(en.prompt)}</p>` : ""}
+      <p>${napeEscape(en.text)}</p>
+    </div>`).join("");
+
+  el.querySelectorAll("[data-del]").forEach(b=>{
+    b.addEventListener("click",()=>{
+      if(!confirm("Delete this reflection?")) return;
+      NAPE.set(NAPE.KEYS.REFLECTIONS, loadEntries().filter(x=>x.id!==b.dataset.del));
+      if(editingId===b.dataset.del) resetComposer();
+      renderEntries();
+    });
+  });
+  el.querySelectorAll("[data-edit]").forEach(b=>{
+    b.addEventListener("click",()=>{
+      const en = loadEntries().find(x=>x.id===b.dataset.edit);
+      if(!en) return;
+      editingId = en.id;
+      textEl.value = en.text;
+      stageSel.value = en.stage || "self";
+      textEl.dispatchEvent(new Event("input"));
+      saveBtn.textContent = "Update reflection";
+      cancelBtn.style.display = "inline-block";
+      window.scrollTo({top:0, behavior:"smooth"});
+      textEl.focus();
+    });
+  });
+}
+
+function resetComposer(){
+  editingId = null;
+  textEl.value = "";
+  textEl.dispatchEvent(new Event("input"));
+  saveBtn.textContent = "Save reflection";
+  cancelBtn.style.display = "none";
+}
+
+cancelBtn.addEventListener("click", resetComposer);
+
+document.getElementById("e-filter").addEventListener("change",(e)=>{
+  entryFilter = e.target.value;
+  renderEntries();
+});
+
+saveBtn.addEventListener("click",()=>{
+  const text = textEl.value.trim();
+  if(!text) return;
+  const entries = loadEntries();
+  if(editingId){
+    const en = entries.find(x=>x.id===editingId);
+    if(en){ en.text = text; en.stage = stageSel.value; en.editedAt = Date.now(); }
+    NAPE.set(NAPE.KEYS.REFLECTIONS, entries);
+    napeToast("Reflection updated.");
+  } else {
+    entries.push({
+      id:napeUid(),
+      stage:stageSel.value,
+      prompt:document.getElementById("p-text").textContent,
+      text,
+      at:Date.now()
+    });
+    NAPE.set(NAPE.KEYS.REFLECTIONS, entries);
+    napeToast("Reflection saved.");
+  }
+  resetComposer();
+  renderEntries();
+});
+
+renderEntries();
+</script>
+</body>
+</html>

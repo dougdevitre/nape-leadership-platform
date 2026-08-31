@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resources — NAPE Leadership</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<section style="padding-top:56px">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="banner-tag">Program Features</span>
+      <h2>What the experience includes</h2>
+      <p id="feat-note">Take the assessment on the Journey page and the features most relevant to your stage will be highlighted here.</p>
+    </div>
+    <div class="grid-2">
+      <div class="feat" data-feat="mentorship">
+        <span class="icon">🗣️</span>
+        <h3>Mentorship</h3>
+        <p>Learn from experienced probation executives, including current and retired chiefs who have led through transition themselves.</p>
+        <span class="match-chip">Suggested for your stage</span>
+      </div>
+      <div class="feat" data-feat="coaching">
+        <span class="icon">📋</span>
+        <h3>Executive coaching</h3>
+        <p>Individualized support with optional group coaching — space to work through your real leadership challenges, confidentially.</p>
+        <span class="match-chip">Suggested for your stage</span>
+      </div>
+      <div class="feat" data-feat="learning">
+        <span class="icon">💻</span>
+        <h3>Blended learning</h3>
+        <p>Virtual sessions paired with in-person engagement, designed around the schedules of working probation leaders.</p>
+        <span class="match-chip">Suggested for your stage</span>
+      </div>
+      <div class="feat" data-feat="cohort">
+        <span class="icon">👥</span>
+        <h3>Cohort-based community</h3>
+        <p>A peer group focused on shared growth — leaders who understand the work, lifting each other through the journey.</p>
+        <span class="match-chip">Suggested for your stage</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="banner-tag">Practice library</span>
+      <h2>Practices you can start this week</h2>
+      <p>Simple, field-tested practices for each stage. Tap once to add any of them to your growth plan as a trackable goal.</p>
+    </div>
+    <div class="grid-3" id="practices"></div>
+  </div>
+</section>
+
+<script src="assets/app.js"></script>
+<script>
+const FEATS_BY_STAGE = {
+  self:["mentorship","coaching","cohort"],
+  others:["coaching","learning","cohort"],
+  org:["mentorship","coaching","learning"]
+};
+const stage = NAPE.get(NAPE.KEYS.STAGE, null);
+if(stage && FEATS_BY_STAGE[stage]){
+  document.getElementById("feat-note").textContent =
+    "Based on your stage — " + NAPE_STAGES[stage].name + " — the highlighted features are your best starting points.";
+  document.querySelectorAll(".feat").forEach(f=>{
+    f.classList.toggle("highlight", FEATS_BY_STAGE[stage].includes(f.dataset.feat));
+  });
+}
+
+const PRACTICES = {
+  self: [
+    ["Weekly reflection block","Thirty protected minutes to review the week: what worked, what didn't, what you'll try next."],
+    ["Feedback triad","Three trusted colleagues, one question: 'What's one thing I do that gets in my own way?'"],
+    ["Energy audit","Track what fills and drains you for two weeks. Redesign one recurring commitment."]
+  ],
+  others: [
+    ["One-on-one rhythm","A consistent monthly conversation per direct report: their agenda first, yours second."],
+    ["Delegation with development","Hand off one meaningful responsibility with support — then debrief what they learned."],
+    ["Team health pulse","One question per staff meeting: 'What's one thing slowing us down that we could fix?'"]
+  ],
+  org: [
+    ["Stakeholder map","List every group your agency's success depends on. Mark where trust is strong, weak, or unknown."],
+    ["One-page vision","Draft where the agency is going in three years — one page, plain language, no jargon."],
+    ["Succession scan","Identify the roles with no ready backup. Start one development conversation this month."]
+  ]
+};
+
+document.getElementById("practices").innerHTML = Object.keys(PRACTICES).map(k=>`
+  <div class="card">
+    <h3 style="font-size:1.08rem;margin-bottom:4px">${NAPE_STAGES[k].name}</h3>
+    ${PRACTICES[k].map((p,i)=>`
+      <div class="res-item">
+        <h4>${p[0]}</h4>
+        <p>${p[1]}</p>
+        <p style="margin-top:10px"><button class="btn btn-outline btn-small" data-practice="${k}|${i}">Add to my plan</button></p>
+      </div>`).join("")}
+  </div>`).join("");
+
+document.getElementById("practices").addEventListener("click",(e)=>{
+  const btn = e.target.closest("[data-practice]");
+  if(!btn || btn.disabled) return;
+  const [k, i] = btn.dataset.practice.split("|");
+  const p = PRACTICES[k][Number(i)];
+  if(!p) return;
+  napeAddGoal(k, p[0], [
+    p[1],
+    "Repeat for two consecutive weeks",
+    "Share one takeaway with a peer or mentor"
+  ]);
+  btn.textContent = "Added ✓";
+  btn.disabled = true;
+  napeToast("\"" + p[0] + "\" added to your growth plan.");
+});
+</script>
+</body>
+</html>

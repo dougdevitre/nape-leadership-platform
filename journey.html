@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Journey — NAPE Leadership</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<section style="padding-top:56px">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="banner-tag">Leadership Experience Framework</span>
+      <h2>One journey, three stages</h2>
+      <p>A structured approach to developing the mindsets, skillsets, and toolsets required to lead people and organizations in an uncertain, rapidly evolving environment. Select a stage to explore it.</p>
+    </div>
+
+    <div class="stages" role="tablist" aria-label="Leadership framework stages">
+      <span class="stage-connector"></span>
+      <button class="stage-btn" role="tab" data-stage="self" aria-selected="true" aria-controls="stage-panel">
+        <span class="stage-dot">🧭</span>
+        <span class="stage-name">Lead Self</span>
+        <span class="stage-sub">Self-awareness, clarity, resilience, purpose</span>
+      </button>
+      <button class="stage-btn" role="tab" data-stage="others" aria-selected="false" aria-controls="stage-panel">
+        <span class="stage-dot">🤝</span>
+        <span class="stage-name">Lead Others</span>
+        <span class="stage-sub">Trust, developing people, high-performing teams</span>
+      </button>
+      <button class="stage-btn" role="tab" data-stage="org" aria-selected="false" aria-controls="stage-panel">
+        <span class="stage-dot">🏛️</span>
+        <span class="stage-name">Lead the Organization</span>
+        <span class="stage-sub">Vision, complexity, meaningful impact</span>
+      </button>
+    </div>
+
+    <div class="stage-panel" id="stage-panel" role="tabpanel" aria-live="polite"></div>
+  </div>
+</section>
+
+<section class="dark-sec" id="assess">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Where are you on the journey?</h2>
+      <p>Six quick questions. Your answers stay on this device — nothing is sent anywhere. Your result sets your suggested stage across the platform and seeds your growth plan.</p>
+    </div>
+    <div class="quiz-card" id="quiz-card"></div>
+  </div>
+</section>
+
+<script src="assets/app.js"></script>
+<script>
+const panel = document.getElementById("stage-panel");
+const stageBtns = document.querySelectorAll(".stage-btn");
+
+function renderStage(key){
+  const s = NAPE_STAGES[key];
+  panel.innerHTML = `
+    <h3>${s.name}</h3>
+    <span class="panel-tag">${s.tag}</span>
+    <div class="mst-grid">
+      <div class="mst"><h4>Mindsets</h4><ul>${s.mindsets.map(m=>`<li>${m}</li>`).join("")}</ul></div>
+      <div class="mst"><h4>Skillsets</h4><ul>${s.skillsets.map(m=>`<li>${m}</li>`).join("")}</ul></div>
+      <div class="mst"><h4>Toolsets</h4><ul>${s.toolsets.map(m=>`<li>${m}</li>`).join("")}</ul></div>
+    </div>
+    <div class="reflect"><strong>Reflection prompt</strong>${s.reflect}
+      <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+        <a class="btn btn-outline btn-small" href="reflections.html?stage=${key}">Reflect on this</a>
+        <button class="btn btn-outline btn-small" id="panel-starter" data-stage="${key}">Load starter goals for this stage</button>
+      </div>
+    </div>`;
+  panel.querySelector("#panel-starter").addEventListener("click",(e)=>{
+    const st = e.target.dataset.stage;
+    (NAPE_STARTERS[st] || []).forEach(s2=> napeAddGoal(st, s2.title, s2.milestones));
+    e.target.textContent = "Added to your plan ✓";
+    e.target.disabled = true;
+    napeToast(NAPE_STAGES[st].name + " starter goals added — open Growth Plan to work them.");
+  });
+}
+stageBtns.forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    stageBtns.forEach(b=>b.setAttribute("aria-selected","false"));
+    btn.setAttribute("aria-selected","true");
+    renderStage(btn.dataset.stage);
+  });
+});
+const savedStage = NAPE.get(NAPE.KEYS.STAGE, null);
+if (savedStage && NAPE_STAGES[savedStage]) {
+  stageBtns.forEach(b=>b.setAttribute("aria-selected", b.dataset.stage===savedStage ? "true":"false"));
+  renderStage(savedStage);
+} else {
+  renderStage("self");
+}
+
+/* ---------------- Assessment ---------------- */
+const QUESTIONS = [
+  { q:"Which best describes your current situation?",
+    opts:[
+      {t:"I'm preparing for, or new to, a senior leadership role", s:"self"},
+      {t:"I lead a team and want to develop the people around me", s:"others"},
+      {t:"I'm responsible for agency-wide direction and outcomes", s:"org"}]},
+  { q:"What keeps you up at night most often?",
+    opts:[
+      {t:"Whether I'm ready for the responsibility I'm taking on", s:"self"},
+      {t:"Whether my team is engaged, growing, and performing", s:"others"},
+      {t:"Where the agency needs to be in three to five years", s:"org"}]},
+  { q:"When something goes wrong, your first instinct is to…",
+    opts:[
+      {t:"Examine what I could have done differently", s:"self"},
+      {t:"Bring the team together to work the problem", s:"others"},
+      {t:"Ask what system or process allowed it to happen", s:"org"}]},
+  { q:"The feedback you'd value most right now is about…",
+    opts:[
+      {t:"My personal leadership presence and blind spots", s:"self"},
+      {t:"How I coach, delegate, and build trust", s:"others"},
+      {t:"How I set direction and lead through change", s:"org"}]},
+  { q:"Success in the next year looks like…",
+    opts:[
+      {t:"Stepping into a bigger role with clarity and confidence", s:"self"},
+      {t:"A stronger bench of leaders on my team", s:"others"},
+      {t:"A clear vision the whole agency is moving toward", s:"org"}]},
+  { q:"Your relationship with peer leaders is…",
+    opts:[
+      {t:"I'd like more of one — I often feel like I'm figuring it out alone", s:"self"},
+      {t:"Good informally, but I'd value structured peer learning", s:"others"},
+      {t:"Established — I want peers navigating the same executive challenges", s:"org"}]}
+];
+
+const RESULTS = {
+  self: {
+    name:"Lead Self",
+    body:"Your answers point to the foundation stage: building the self-awareness, clarity, and resilience senior roles demand. The strongest executives start here — deliberately.",
+    focus:["Mentorship from chiefs who've made the same transition","Individualized executive coaching for role transition","A cohort of peers at the same stage of the journey"]
+  },
+  others: {
+    name:"Lead Others",
+    body:"Your answers center on people: trust, development, and team performance. Your growth edge is multiplying leadership through others, not just carrying it yourself.",
+    focus:["Group coaching on real team challenges","Blended learning on coaching and team development","A peer community for exchanging what works"]
+  },
+  org: {
+    name:"Lead the Organization",
+    body:"Your answers reflect enterprise-level leadership: vision, complexity, and system-wide impact. Your growth edge is leading through uncertainty and building what outlasts you.",
+    focus:["Mentorship from current and retired chiefs","Executive coaching on strategy and change","In-person engagement with fellow senior executives"]
+  }
+};
+
+const quizCard = document.getElementById("quiz-card");
+let qIndex = 0;
+let answers = [];
+
+function tallyUp(){
+  const t = {self:0, others:0, org:0};
+  answers.forEach(s=>t[s]++);
+  return t;
+}
+
+function renderQuestion(){
+  const q = QUESTIONS[qIndex];
+  quizCard.innerHTML = `
+    <div class="q-progress">${QUESTIONS.map((_,i)=>`<span class="${i<qIndex?"done":""}"></span>`).join("")}</div>
+    <p class="q-count">Question ${qIndex+1} of ${QUESTIONS.length}</p>
+    <p class="q-text">${q.q}</p>
+    <div class="q-opts">
+      ${q.opts.map(o=>`<button class="q-opt" data-s="${o.s}">${o.t}</button>`).join("")}
+    </div>
+    ${qIndex>0 ? `<button class="restart" id="q-back">← Back to previous question</button>` : ""}`;
+  quizCard.querySelectorAll(".q-opt").forEach(b=>{
+    b.addEventListener("click",()=>{
+      answers.push(b.dataset.s);
+      qIndex++;
+      if(qIndex < QUESTIONS.length){ renderQuestion(); } else { renderResult(); }
+    });
+  });
+  const back = quizCard.querySelector("#q-back");
+  if(back) back.addEventListener("click",()=>{
+    qIndex--; answers.pop(); renderQuestion();
+  });
+}
+
+function tallyBars(t){
+  return `
+    <div class="tally" aria-label="Score breakdown">
+      ${["self","others","org"].map(k=>{
+        const pct = Math.round((t[k]/QUESTIONS.length)*100);
+        return `<div class="tally-row"><span>${NAPE_STAGES[k].name}</span><div class="bar"><i style="width:${pct}%"></i></div><em>${t[k]}</em></div>`;
+      }).join("")}
+    </div>`;
+}
+
+function renderResult(){
+  const t = tallyUp();
+  const winner = Object.keys(t).sort((a,b)=>t[b]-t[a])[0];
+  const r = RESULTS[winner];
+  NAPE.set(NAPE.KEYS.STAGE, winner);
+  quizCard.innerHTML = `
+    <div class="q-progress">${QUESTIONS.map(()=>`<span class="done"></span>`).join("")}</div>
+    <p style="font-size:.85rem;color:#8FA0C4;font-weight:600">Your suggested starting stage</p>
+    <p class="result-stage">${r.name}</p>
+    ${tallyBars(t)}
+    <p class="result-body">${r.body}</p>
+    <ul class="result-list">${r.focus.map(f=>`<li>${f}</li>`).join("")}</ul>
+    <a class="btn btn-gold" href="growth.html">Build your growth plan</a>
+    <br><button class="restart" id="restart">Retake the assessment</button>`;
+  document.getElementById("restart").addEventListener("click",()=>{
+    qIndex = 0; answers = [];
+    renderQuestion();
+  });
+  stageBtns.forEach(b=>b.setAttribute("aria-selected", b.dataset.stage===winner ? "true":"false"));
+  renderStage(winner);
+  napeToast("Stage saved: " + r.name);
+}
+
+if (savedStage && NAPE_STAGES[savedStage]) {
+  const r = RESULTS[savedStage];
+  quizCard.innerHTML = `
+    <p style="font-size:.85rem;color:#8FA0C4;font-weight:600">Your saved stage</p>
+    <p class="result-stage">${r.name}</p>
+    <p class="result-body">${r.body}</p>
+    <a class="btn btn-gold" href="growth.html">Build your growth plan</a>
+    <br><button class="restart" id="restart">Retake the assessment</button>`;
+  document.getElementById("restart").addEventListener("click",()=>{
+    qIndex = 0; answers = [];
+    renderQuestion();
+  });
+} else {
+  renderQuestion();
+}
+</script>
+</body>
+</html>

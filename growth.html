@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Growth Plan — NAPE Leadership</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<section style="padding-top:56px">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="banner-tag">Growth Plan</span>
+      <h2>Track and approve your growth</h2>
+      <p>Set goals for each stage of the journey and break them into milestones. Milestones move from <strong>planned</strong> → <strong>complete</strong> (you) → <strong>approved</strong> (your mentor or coach signs off). Everything is saved on this device.</p>
+    </div>
+
+    <div class="progress-band" id="progress-band"></div>
+
+    <div class="toolbar">
+      <button class="btn btn-navy btn-small" id="btn-add-goal">+ Add a goal</button>
+      <button class="btn btn-outline btn-small" id="btn-starter">Load starter goals for my stage</button>
+      <button class="btn btn-outline btn-small" id="btn-export">Export plan</button>
+      <button class="btn btn-outline btn-small" id="btn-import">Import plan</button>
+      <input type="file" id="import-file" accept="application/json" hidden>
+    </div>
+
+    <div class="chips" role="group" aria-label="Filter milestones">
+      <button class="chip active" data-f="all">All</button>
+      <button class="chip" data-f="planned">Planned</button>
+      <button class="chip" data-f="complete">Awaiting approval</button>
+      <button class="chip" data-f="approved">Approved</button>
+    </div>
+
+    <div id="goal-form" style="display:none" class="card" role="form" aria-label="Add a goal">
+      <div class="add-row">
+        <select id="g-stage" aria-label="Stage">
+          <option value="self">Lead Self</option>
+          <option value="others">Lead Others</option>
+          <option value="org">Lead the Organization</option>
+        </select>
+        <input id="g-title" type="text" placeholder="Goal — e.g., Build a monthly one-on-one rhythm with my supervisors" aria-label="Goal title">
+        <button class="btn btn-gold btn-small" id="g-save">Save goal</button>
+      </div>
+    </div>
+
+    <div id="goals" style="margin-top:22px"></div>
+  </div>
+</section>
+
+<script src="assets/app.js"></script>
+<script>
+const goalsEl = document.getElementById("goals");
+const bandEl = document.getElementById("progress-band");
+let filter = "all";
+let approving = null; // {g, m} while inline-approve UI is open
+
+function load(){ return NAPE.get(NAPE.KEYS.GOALS, []); }
+function save(goals){ NAPE.set(NAPE.KEYS.GOALS, goals); render(); }
+
+function ring(pct, label, color){
+  const r = 40, c = 2*Math.PI*r;
+  const off = c - (pct/100)*c;
+  return `
+    <div class="ring-card">
+      <div class="ring">
+        <svg width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
+          <circle cx="48" cy="48" r="${r}" fill="none" stroke="#EFEDE6" stroke-width="9"/>
+          <circle cx="48" cy="48" r="${r}" fill="none" stroke="${color}" stroke-width="9"
+            stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}"/>
+        </svg>
+        <span class="pct">${pct}%</span>
+      </div>
+      <span class="lbl">${label}</span>
+    </div>`;
+}
+
+function renderBand(){
+  const p = napeProgress();
+  const s = p.byStage;
+  const pc = o => o.t ? Math.round((o.a/o.t)*100) : 0;
+  bandEl.innerHTML =
+    ring(p.pct, "Overall approved", "#C9962E") +
+    ring(pc(s.self), "Lead Self", "#2E7D6E") +
+    ring(pc(s.others), "Lead Others", "#1E2E4F") +
+    ring(pc(s.org), "Lead the Organization", "#C9962E");
+}
+
+const CHIP = { self:["chip-self","Lead Self"], others:["chip-others","Lead Others"], org:["chip-org","Lead the Organization"] };
+
+function msRow(g, m){
+  const st = m.status || "planned";
+  const statusChip = st==="approved"
+    ? `<span class="ms-status st-approved">Approved${m.approvedBy?` · ${napeEscape(m.approvedBy)}`:""}</span>`
+    : st==="complete"
+      ? `<span class="ms-status st-complete">Complete — awaiting approval</span>`
+      : `<span class="ms-status st-planned">Planned</span>`;
+
+  let actions;
+  if (approving && approving.g===g.id && approving.m===m.id) {
+    actions = `<span class="approve-inline">
+        <input type="text" value="Self" aria-label="Approved by" data-appin>
+        <button class="link-btn" data-act="approve-confirm" data-g="${g.id}" data-m="${m.id}">Confirm</button>
+        <button class="link-btn danger" data-act="approve-cancel">Cancel</button>
+      </span>`;
+  } else if (st==="planned") {
+    actions = `<button class="link-btn" data-act="complete" data-g="${g.id}" data-m="${m.id}">Mark complete</button>`;
+  } else if (st==="complete") {
+    actions = `<button class="link-btn" data-act="approve-start" data-g="${g.id}" data-m="${m.id}">Approve</button>
+       <button class="link-btn" data-act="reset" data-g="${g.id}" data-m="${m.id}">Undo</button>`;
+  } else {
+    actions = `<button class="link-btn" data-act="reset" data-g="${g.id}" data-m="${m.id}">Reopen</button>`;
+  }
+
+  return `
+    <li class="ms ${st!=="planned"?"done":""}">
+      <span class="ms-text">${napeEscape(m.text)}</span>
+      ${statusChip}
+      <span class="ms-actions">${actions}
+        <button class="link-btn danger" data-act="del-ms" data-g="${g.id}" data-m="${m.id}" aria-label="Delete milestone">✕</button>
+      </span>
+    </li>`;
+}
+
+function render(){
+  renderBand();
+  document.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active", c.dataset.f===filter));
+  const goals = load();
+  if(!goals.length){
+    goalsEl.innerHTML = `<div class="empty-note">
+      <p style="font-family:'Fraunces',serif;font-size:1.15rem;color:var(--navy);margin-bottom:6px">Your growth plan starts here.</p>
+      <p>Add your first goal, or load starter goals matched to your stage from the Journey assessment.</p>
+    </div>`;
+    return;
+  }
+
+  let shown = 0;
+  const html = goals.map(g=>{
+    const visible = filter==="all" ? g.milestones : g.milestones.filter(m=>(m.status||"planned")===filter);
+    if(filter!=="all" && !visible.length) return "";
+    shown++;
+    const [chipClass, chipLabel] = CHIP[g.stage] || CHIP.self;
+    const total = g.milestones.length;
+    const approved = g.milestones.filter(m=>m.status==="approved").length;
+    return `
+    <article class="goal">
+      <div class="goal-head">
+        <div>
+          <span class="stage-chip ${chipClass}">${chipLabel}</span>
+          <h3>${napeEscape(g.title)}</h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:.82rem;font-weight:700;color:var(--ink-soft)">${approved}/${total} approved</span>
+          <button class="link-btn danger" data-act="del-goal" data-g="${g.id}">Delete goal</button>
+        </div>
+      </div>
+      <ul class="ms-list">${visible.map(m=>msRow(g,m)).join("")}</ul>
+      ${filter==="all" ? `
+      <div class="add-row">
+        <input type="text" placeholder="Add a milestone…" data-msinput="${g.id}" aria-label="New milestone for ${napeEscape(g.title)}">
+        <button class="btn btn-outline btn-small" data-act="add-ms" data-g="${g.id}">Add</button>
+      </div>` : ""}
+    </article>`;
+  }).join("");
+
+  goalsEl.innerHTML = shown ? html : `<div class="empty-note">No milestones match this filter yet.</div>`;
+
+  if (approving) {
+    const inp = goalsEl.querySelector("[data-appin]");
+    if (inp) { inp.focus(); inp.select(); }
+  }
+}
+
+/* ---------- Toolbar actions ---------- */
+document.getElementById("btn-add-goal").addEventListener("click",()=>{
+  const f = document.getElementById("goal-form");
+  f.style.display = f.style.display==="none" ? "block" : "none";
+  if(f.style.display==="block") document.getElementById("g-title").focus();
+});
+
+document.getElementById("g-save").addEventListener("click",()=>{
+  const title = document.getElementById("g-title").value.trim();
+  const stage = document.getElementById("g-stage").value;
+  if(!title) return;
+  napeAddGoal(stage, title, []);
+  document.getElementById("g-title").value = "";
+  document.getElementById("goal-form").style.display = "none";
+  render();
+  napeToast("Goal added.");
+});
+
+document.getElementById("btn-starter").addEventListener("click",()=>{
+  const stage = NAPE.get(NAPE.KEYS.STAGE, "self");
+  (NAPE_STARTERS[stage] || NAPE_STARTERS.self).forEach(s=> napeAddGoal(stage, s.title, s.milestones));
+  render();
+  napeToast("Starter goals added for " + (NAPE_STAGES[stage] ? NAPE_STAGES[stage].name : "your stage") + ".");
+});
+
+document.getElementById("btn-export").addEventListener("click",()=>{
+  const data = {
+    exportedAt:new Date().toISOString(),
+    stage:NAPE.get(NAPE.KEYS.STAGE, null),
+    goals:load(),
+    reflections:NAPE.get(NAPE.KEYS.REFLECTIONS, [])
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "nape-growth-plan.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  napeToast("Plan exported as JSON.");
+});
+
+document.getElementById("btn-import").addEventListener("click",()=> document.getElementById("import-file").click());
+document.getElementById("import-file").addEventListener("change",(e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try {
+      const data = JSON.parse(reader.result);
+      if(!data || !Array.isArray(data.goals)) throw new Error("bad shape");
+      if(!confirm("Replace your current plan with the imported one? This overwrites goals" + (Array.isArray(data.reflections)?", reflections":"") + (data.stage?", and stage":"") + " on this device.")) return;
+      NAPE.set(NAPE.KEYS.GOALS, data.goals);
+      if(Array.isArray(data.reflections)) NAPE.set(NAPE.KEYS.REFLECTIONS, data.reflections);
+      if(data.stage) NAPE.set(NAPE.KEYS.STAGE, data.stage);
+      render();
+      napeToast("Plan imported.");
+    } catch(err){
+      napeToast("That file doesn't look like a NAPE plan export.");
+    }
+    e.target.value = "";
+  };
+  reader.readAsText(file);
+});
+
+document.querySelectorAll(".chip").forEach(c=>{
+  c.addEventListener("click",()=>{ filter = c.dataset.f; approving = null; render(); });
+});
+
+/* ---------- Goal/milestone actions ---------- */
+goalsEl.addEventListener("click",(e)=>{
+  const btn = e.target.closest("[data-act]");
+  if(!btn) return;
+  const act = btn.dataset.act, gid = btn.dataset.g, mid = btn.dataset.m;
+  let goals = load();
+
+  if(act==="approve-cancel"){ approving = null; render(); return; }
+
+  const g = goals.find(x=>x.id===gid);
+  if(!g) return;
+
+  if(act==="del-goal"){
+    if(confirm("Delete this goal and its milestones?")) save(goals.filter(x=>x.id!==gid));
+    return;
+  }
+  if(act==="add-ms"){
+    const input = goalsEl.querySelector(`[data-msinput="${gid}"]`);
+    const text = input.value.trim();
+    if(!text) return;
+    g.milestones.push({ id:napeUid(), text, status:"planned" });
+    save(goals);
+    const again = goalsEl.querySelector(`[data-msinput="${gid}"]`);
+    if(again) again.focus();
+    return;
+  }
+  const m = g.milestones.find(x=>x.id===mid);
+  if(!m) return;
+
+  if(act==="complete"){ m.status="complete"; m.completedAt=Date.now(); save(goals); napeToast("Marked complete — ready for approval."); return; }
+  if(act==="approve-start"){ approving = {g:gid, m:mid}; render(); return; }
+  if(act==="approve-confirm"){
+    const inp = goalsEl.querySelector("[data-appin]");
+    const who = inp ? inp.value.trim() : "";
+    m.status="approved"; m.approvedBy = who || "Self"; m.approvedAt=Date.now();
+    approving = null;
+    save(goals);
+    napeToast("Milestone approved" + (who ? " by " + who : "") + ".");
+    return;
+  }
+  if(act==="reset"){ m.status="planned"; delete m.approvedBy; save(goals); return; }
+  if(act==="del-ms"){ g.milestones = g.milestones.filter(x=>x.id!==mid); save(goals); return; }
+});
+
+goalsEl.addEventListener("keydown",(e)=>{
+  if(e.key==="Enter" && e.target.matches("[data-msinput]")){
+    const gid = e.target.dataset.msinput;
+    goalsEl.querySelector(`[data-act="add-ms"][data-g="${gid}"]`).click();
+  }
+  if(e.key==="Enter" && e.target.matches("[data-appin]")){
+    const c = goalsEl.querySelector('[data-act="approve-confirm"]');
+    if(c) c.click();
+  }
+});
+document.getElementById("g-title").addEventListener("keydown",(e)=>{
+  if(e.key==="Enter") document.getElementById("g-save").click();
+});
+
+render();
+</script>
+</body>
+</html>

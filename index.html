@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NAPE Executive Leadership Experience</title>
+<meta name="description" content="A cohort-based executive leadership experience for probation chiefs, directors, and deputy leaders.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="kicker">Coming soon from NAPE</span>
+    <h1>A new executive leadership experience for probation leaders</h1>
+    <p class="lede">The NAPE Board of Directors has approved development of a cohort-based program built specifically for probation chiefs, directors, and deputy leaders stepping into senior-level roles — blending mentorship, executive coaching, and virtual + in-person learning.</p>
+    <div class="cta-row">
+      <a class="btn btn-gold" id="cta-primary" href="journey.html">Start your journey</a>
+      <a class="btn btn-ghost" href="growth.html">Open your growth plan</a>
+    </div>
+    <div id="welcome-strip"></div>
+  </div>
+  <div class="roadbox" aria-hidden="true">
+    <svg viewBox="0 0 1200 150" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,150 L0,110 C200,60 320,130 520,95 C720,60 850,120 1050,70 C1120,53 1170,58 1200,50 L1200,150 Z" fill="#FBF9F4"/>
+      <path d="M0,112 C200,62 320,132 520,97 C720,62 850,122 1050,72 C1120,55 1170,60 1200,52" fill="none" stroke="#C9962E" stroke-width="3" stroke-dasharray="10 8"/>
+      <circle cx="150" cy="93" r="7" fill="#2E7D6E"/>
+      <circle cx="600" cy="88" r="7" fill="#1E2E4F"/>
+      <circle cx="1080" cy="66" r="7" fill="#C9962E"/>
+    </svg>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="banner-tag">Your member workspace</span>
+      <h2>Everything on this platform serves one journey</h2>
+      <p>Discover your stage, build a growth plan, reflect as you go, and get milestones reviewed and approved. Your work is saved on this device and travels with you across every page.</p>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <h3 style="font-size:1.1rem;margin-bottom:8px">1 · Find your stage</h3>
+        <p style="font-size:.93rem;color:var(--ink-soft)">Take the self-assessment on the Journey page to see where you are: Lead Self, Lead Others, or Lead the Organization.</p>
+        <p style="margin-top:14px"><a class="btn btn-outline btn-small" href="journey.html">Take the assessment</a></p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1.1rem;margin-bottom:8px">2 · Build your growth plan</h3>
+        <p style="font-size:.93rem;color:var(--ink-soft)">Set goals for each stage, break them into milestones, and track them from planned to complete to approved.</p>
+        <p style="margin-top:14px"><a class="btn btn-outline btn-small" href="growth.html">Open growth plan</a></p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:1.1rem;margin-bottom:8px">3 · Reflect and connect</h3>
+        <p style="font-size:.93rem;color:var(--ink-soft)">Use guided reflection prompts to capture what you're learning, and stay connected as the program launches.</p>
+        <p style="margin-top:14px"><a class="btn btn-outline btn-small" href="reflections.html">Start reflecting</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="banner-tag">Why this matters</span>
+      <h2>Built for the moments that matter most</h2>
+    </div>
+    <div class="grid-3">
+      <div class="why">
+        <h3>Transition support</h3>
+        <p>Supports leaders during times of transition and increased responsibility — when the role changes faster than the playbook.</p>
+      </div>
+      <div class="why">
+        <h3>Confidence and capability</h3>
+        <p>Builds the clarity and confidence to lead with impact, grounded in the realities of probation work.</p>
+      </div>
+      <div class="why">
+        <h3>A community of leaders</h3>
+        <p>Strengthens connections among leaders who lift each other — because no one should step into a chief's chair alone.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="assets/app.js"></script>
+<script>
+(function(){
+  const stage = NAPE.get(NAPE.KEYS.STAGE, null);
+  const profile = NAPE.get(NAPE.KEYS.PROFILE, null);
+  if (!stage && !profile) return;
+
+  const p = napeProgress();
+  const refl = NAPE.get(NAPE.KEYS.REFLECTIONS, []);
+  const goals = NAPE.get(NAPE.KEYS.GOALS, []);
+  const firstName = profile && profile.name ? profile.name.split(" ")[0] : null;
+  const stageName = stage && NAPE_STAGES[stage] ? NAPE_STAGES[stage].name : null;
+
+  const cta = document.getElementById("cta-primary");
+  if (goals.length) { cta.textContent = "Continue your growth plan"; cta.href = "growth.html"; }
+  else if (stage) { cta.textContent = "Continue your journey"; }
+
+  const nextHref = goals.length ? "growth.html" : (stage ? "growth.html" : "journey.html");
+  const strip = document.getElementById("welcome-strip");
+  strip.innerHTML = `
+    <div class="welcome-strip">
+      <div>
+        <p class="w-hi">Welcome back${firstName ? ", " + napeEscape(firstName) : ""}.</p>
+        <div class="w-chips">
+          ${stageName ? `<span class="w-chip">Stage: ${stageName}</span>` : ""}
+          <span class="w-chip">${goals.length} goal${goals.length === 1 ? "" : "s"}</span>
+          <span class="w-chip">${p.pct}% approved</span>
+          <span class="w-chip">${refl.length} reflection${refl.length === 1 ? "" : "s"}</span>
+        </div>
+      </div>
+      <a class="btn btn-gold btn-small" href="${nextHref}">Pick up where you left off</a>
+    </div>`;
+})();
+</script>
+</body>
+</html>
