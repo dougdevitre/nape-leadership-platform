@@ -88,7 +88,26 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   await page.waitForSelector(".confirm.show");
   if (!(await page.textContent("#f-confirm")).includes("you're on the list")) throw new Error("200 path broken");
 
-  // 4. Unknown paths get the 404 page
+  // 4. Disclosure pages render with the prototype banner; clear-data works
+  for (const p of ["/privacy", "/terms"]) {
+    await page.goto(`http://localhost:${PORT}${p}`);
+    if (!(await page.$("nav.site-nav"))) throw new Error(p + ": nav missing");
+    if (!(await page.$(".proto-banner"))) throw new Error(p + ": prototype banner missing");
+  }
+  await page.goto(`http://localhost:${PORT}/privacy`);
+  await page.evaluate(() => localStorage.setItem("nape_stage_v1", JSON.stringify("self")));
+  await page.click("#clear-data"); // dialog auto-accepted above
+  const cleared = await page.evaluate(() => localStorage.getItem("nape_stage_v1"));
+  if (cleared !== null) throw new Error("clear-data did not wipe localStorage");
+
+  // 5. Every page carries the prototype banner and footer disclosure links
+  for (const p of PAGES) {
+    await page.goto(`http://localhost:${PORT}${p}`);
+    if (!(await page.$(".proto-banner"))) throw new Error(p + ": prototype banner missing");
+    if (!(await page.$('footer a[href="/privacy"]'))) throw new Error(p + ": footer privacy link missing");
+  }
+
+  // 6. Unknown paths get the 404 page
   await page.goto(`http://localhost:${PORT}/definitely-not-a-page`);
   if (!(await page.textContent("body")).includes("404")) throw new Error("404 page not served");
 

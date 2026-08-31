@@ -220,3 +220,14 @@ footer .tagline{font-family:'Fraunces',serif;font-style:italic;font-size:1.2rem;
 .filter-row{display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
 .filter-row select{padding:8px 12px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;font-size:.88rem;background:var(--paper);color:var(--ink)}
 .wc{font-size:.75rem;color:var(--ink-soft);text-align:right;margin-top:4px}
+
+/* ---------- Prototype disclosure ---------- */
+.proto-banner{background:var(--gold-soft);color:var(--navy);font-size:.78rem;text-align:center;padding:7px 16px;border-bottom:1px solid var(--line)}
+.proto-banner a{color:inherit;font-weight:600}
+footer .foot-legal{margin-top:10px;font-size:.78rem}
+footer .foot-legal a{color:#B8C4DC}
+.legal{max-width:720px}
+.legal h3{font-size:1.15rem;margin:28px 0 8px}
+.legal p,.legal li{font-size:.93rem;color:var(--ink);line-height:1.65;margin-bottom:10px}
+.legal ul{padding-left:22px;margin-bottom:10px}
+.legal .updated{font-size:.8rem;color:var(--ink-soft)}
