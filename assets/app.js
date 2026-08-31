@@ -15,7 +15,8 @@ const NAPE = {
     GOALS: "nape_goals_v1",
     REFLECTIONS: "nape_reflections_v1",
     STAGE: "nape_stage_v1",
-    PROFILE: "nape_profile_v1"
+    PROFILE: "nape_profile_v1",
+    BACKUP: "nape_backup_v1"
   }
 };
 
@@ -111,40 +112,20 @@ function napeAddGoal(stage, title, milestones) {
   return goals;
 }
 
-/* ---------- Nav ---------- */
-(function renderNav() {
-  const pages = [
-    { href: "index.html", label: "Home" },
-    { href: "journey.html", label: "Journey" },
-    { href: "growth.html", label: "Growth Plan" },
-    { href: "reflections.html", label: "Reflections" },
-    { href: "resources.html", label: "Resources" },
-    { href: "connect.html", label: "Connect" }
-  ];
-  const current = (location.pathname.split("/").pop() || "index.html");
-  const p = napeProgress();
-  const progressLabel = p.total
-    ? p.pct + "% approved"
-    : "Start your plan";
+/* ---------- Nav (markup is static in each page; JS adds progress + mobile toggle) ---------- */
+(function initNav() {
+  const nav = document.querySelector(".site-nav");
+  if (!nav) return;
 
-  const nav = document.createElement("nav");
-  nav.className = "site-nav";
-  nav.setAttribute("aria-label", "Main");
-  nav.innerHTML = `
-    <div class="nav-inner">
-      <a class="nav-brand" href="index.html"><span class="mark">N</span>NAPE Leadership</a>
-      <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu">
-        <span></span><span></span><span></span>
-      </button>
-      <ul class="nav-links" id="nav-links">
-        ${pages.map(pg => `<li><a href="${pg.href}" class="${pg.href === current ? "active" : ""}" ${pg.href === current ? 'aria-current="page"' : ""}>${pg.label}</a></li>`).join("")}
-        <li><a class="nav-progress" href="growth.html"><span class="dot"></span>${progressLabel}</a></li>
-      </ul>
-    </div>`;
-  document.body.prepend(nav);
+  const label = nav.querySelector("[data-progress]");
+  if (label) {
+    const p = napeProgress();
+    label.textContent = p.total ? p.pct + "% approved" : "Start your plan";
+  }
 
   const toggle = nav.querySelector(".nav-toggle");
   const links = nav.querySelector(".nav-links");
+  if (!toggle || !links) return;
   toggle.addEventListener("click", () => {
     const open = links.classList.toggle("open");
     toggle.setAttribute("aria-expanded", String(open));
@@ -156,25 +137,6 @@ function napeAddGoal(stage, title, milestones) {
       toggle.setAttribute("aria-expanded", "false");
     }
   });
-})();
-
-/* ---------- Footer ---------- */
-(function renderFooter() {
-  const f = document.createElement("footer");
-  f.innerHTML = `
-    <div class="wrap">
-      <p class="tagline">Strong leaders. Stronger organizations. Stronger communities.</p>
-      <p>NAPE Executive Leadership Experience — coming soon</p>
-    </div>`;
-  document.body.append(f);
-})();
-
-/* ---------- Mobile browser chrome color ---------- */
-(function () {
-  const m = document.createElement("meta");
-  m.name = "theme-color";
-  m.content = "#1E2E4F";
-  document.head.append(m);
 })();
 
 /* ---------- Helpers ---------- */

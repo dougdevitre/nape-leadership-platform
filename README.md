@@ -14,10 +14,28 @@ growth.html         Goal/milestone tracker (planned → complete → approved), 
 reflections.html    Guided journal with stats, filters, edit
 resources.html      Program features + one-tap practice library
 connect.html        Interest form (posts to /api/interest)
-api/interest.js     Vercel serverless function → Airtable "Interest" table
-assets/app.js       Shared storage (localStorage), nav, toast, starter-goal engine
+privacy.html        Privacy Notice (local-only data, form data, providers, clear-data button)
+terms.html          Terms & Disclaimers (prototype status, no-advice, as-is)
+404.html            Not-found page
+api/interest.js     Vercel serverless function → Airtable "Interest" table (upserts on Email)
+assets/app.js       Shared storage (localStorage), nav hydration, toast, starter-goal engine
 assets/styles.css   Design system (navy/teal/gold, Fraunces + Public Sans)
+assets/favicon.svg  Browser-tab icon
+vercel.json         Clean URLs (/journey, /growth, …) + security headers
+scripts/smoke.js    Headless-browser smoke test (also runs in GitHub Actions CI)
 ```
+
+Pages are served at clean URLs (`/journey`, not `/journey.html`) via `cleanUrls`
+in `vercel.json`; internal links use the clean form.
+
+## Prototype disclosures
+
+Every page carries a prototype banner and footer links to the Privacy Notice
+(`/privacy`) and Terms & Disclaimers (`/terms`). The interest form includes
+consent language, the assessment carries a not-a-validated-instrument
+disclaimer, and the privacy page has a one-click "clear all data on this
+device" control. Before a public launch: add a NAPE contact email to both
+legal pages and have counsel review the wording.
 
 ## Environment variables (Vercel project settings)
 
