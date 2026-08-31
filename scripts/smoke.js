@@ -80,6 +80,16 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   if ((await page.getAttribute('.stage-btn[data-stage="others"]', "aria-selected")) !== "true")
     throw new Error("stage tablist arrow-key navigation broken");
 
+  // 2c. Feedback widget: prefills the page, sends, and confirms
+  await page.route("**/api/feedback", r => r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }));
+  await page.goto(`http://localhost:${PORT}/journey`);
+  await page.click("#fb-open");
+  if ((await page.inputValue("#fb-page")) !== "Journey") throw new Error("feedback widget page not prefilled");
+  await page.fill("#fb-text", "Test feedback from smoke run");
+  await page.click("#fb-send");
+  await page.waitForFunction(() => document.getElementById("fb-note").textContent.includes("Thanks"));
+  await page.unroute("**/api/feedback");
+
   // 3. Interest form: 503 shows the pending message, 200 shows success
   await page.route("**/api/interest", r => r.fulfill({ status: 503, contentType: "application/json", body: '{"ok":false,"error":"not_configured"}' }));
   await page.goto(`http://localhost:${PORT}/connect`);

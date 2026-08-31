@@ -20,6 +20,7 @@ privacy.html        Privacy Notice (local-only data, form data, providers, clear
 terms.html          Terms & Disclaimers (prototype status, no-advice, as-is)
 404.html            Not-found page
 api/interest.js     Vercel serverless function → Airtable "Interest" table (upserts on Email)
+api/feedback.js     Serverless function → Airtable "Prototype Feedback" table (site-wide widget)
 assets/app.js       Shared storage (localStorage), nav hydration, toast, starter-goal engine
 assets/styles.css   Design system (navy/teal/gold, Fraunces + Public Sans)
 assets/favicon.svg  Browser-tab icon
