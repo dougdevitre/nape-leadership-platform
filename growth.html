@@ -281,6 +281,7 @@ document.getElementById("btn-export").addEventListener("click",()=>{
 document.getElementById("btn-import").addEventListener("click",()=> document.getElementById("import-file").click());
 document.getElementById("import-file").addEventListener("change",(e)=>{
   const file = e.target.files && e.target.files[0];
+  e.target.value = ""; // reset now so re-picking the same file fires change again
   if(!file) return;
   const reader = new FileReader();
   reader.onload = ()=>{
@@ -288,19 +289,22 @@ document.getElementById("import-file").addEventListener("change",(e)=>{
       const data = JSON.parse(reader.result);
       if(!data || !Array.isArray(data.goals)) throw new Error("bad shape");
       // Normalize every goal/milestone so a hand-edited or partial file can't leave
-      // localStorage in a shape render() chokes on.
+      // localStorage in a shape render() chokes on. Ids are always regenerated:
+      // imported ids are attacker-controlled and render() interpolates ids into
+      // attribute positions unescaped.
+      const validStage = k => Object.hasOwn(NAPE_STAGES, k);
       const goals = data.goals
         .filter(g => g && typeof g === "object" && g.title)
         .map(g => ({
-          id: g.id ? String(g.id) : napeUid(),
-          stage: NAPE_STAGES[g.stage] ? g.stage : "self",
+          id: napeUid(),
+          stage: validStage(g.stage) ? g.stage : "self",
           title: String(g.title),
           createdAt: typeof g.createdAt === "number" ? g.createdAt : Date.now(),
           milestones: (Array.isArray(g.milestones) ? g.milestones : [])
             .filter(m => m && m.text)
             .map(m => {
               const ms = {
-                id: m.id ? String(m.id) : napeUid(),
+                id: napeUid(),
                 text: String(m.text),
                 status: ["planned","complete","approved"].includes(m.status) ? m.status : "planned"
               };
@@ -315,20 +319,19 @@ document.getElementById("import-file").addEventListener("change",(e)=>{
       if(!confirm("Replace your current plan with the imported one? This overwrites goals" + (Array.isArray(data.reflections)?", reflections":"") + (data.stage?", and stage":"") + " on this device.")) return;
       NAPE.set(NAPE.KEYS.GOALS, goals);
       if(Array.isArray(data.reflections)) NAPE.set(NAPE.KEYS.REFLECTIONS, data.reflections.filter(e => e && e.text).map(e => ({
-        id: e.id ? String(e.id) : napeUid(),
-        stage: NAPE_STAGES[e.stage] ? e.stage : "self",
+        id: napeUid(),
+        stage: validStage(e.stage) ? e.stage : "self",
         prompt: e.prompt ? String(e.prompt) : "",
         text: String(e.text),
         at: typeof e.at === "number" ? e.at : Date.now(),
         ...(typeof e.editedAt === "number" ? { editedAt: e.editedAt } : {})
       })));
-      if(NAPE_STAGES[data.stage]) NAPE.set(NAPE.KEYS.STAGE, data.stage);
+      if(validStage(data.stage)) NAPE.set(NAPE.KEYS.STAGE, data.stage);
       render();
       napeToast("Plan imported.");
     } catch(err){
       napeToast("That file doesn't look like a NAPE plan export.");
     }
-    e.target.value = "";
   };
   reader.readAsText(file);
 });

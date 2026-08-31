@@ -140,7 +140,8 @@ tabs.forEach((btn, i)=>{
   });
 });
 const savedStage = NAPE.get(NAPE.KEYS.STAGE, null);
-selectStage(savedStage && NAPE_STAGES[savedStage] ? savedStage : "self");
+const hasSavedStage = typeof savedStage === "string" && Object.hasOwn(NAPE_STAGES, savedStage);
+selectStage(hasSavedStage ? savedStage : "self");
 
 /* ---------------- Assessment ---------------- */
 const QUESTIONS = [
@@ -260,7 +261,7 @@ function renderResult(){
   napeToast("Stage saved: " + r.name);
 }
 
-if (savedStage && NAPE_STAGES[savedStage]) {
+if (hasSavedStage) {
   const r = RESULTS[savedStage];
   quizCard.innerHTML = `
     <p style="font-size:.85rem;color:#8FA0C4;font-weight:600">Your saved stage</p>

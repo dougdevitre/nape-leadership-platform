@@ -52,29 +52,34 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // Upsert on Email so resubmits (and "Update my info") update the existing
-    // row instead of creating duplicates.
-    const r = await fetch(`https://api.airtable.com/v0/${baseId}/Interest`, {
-      method: "PATCH",
+    // Null (not undefined) for blanked fields so an upsert actually clears them.
+    const fields = {
+      Name: String(name).slice(0, 200),
+      Email: String(email).trim().toLowerCase().slice(0, 200),
+      Role: role ? String(role).slice(0, 200) : null,
+      Agency: agency ? String(agency).slice(0, 200) : null,
+      Source: "nape-leadership-platform",
+      Submitted: new Date().toISOString()
+    };
+    const send = (extra) => fetch(`https://api.airtable.com/v0/${baseId}/Interest`, {
+      method: extra.performUpsert ? "PATCH" : "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        performUpsert: { fieldsToMergeOn: ["Email"] },
-        records: [{
-          fields: {
-            Name: String(name).slice(0, 200),
-            Email: String(email).trim().toLowerCase().slice(0, 200),
-            Role: role ? String(role).slice(0, 200) : undefined,
-            Agency: agency ? String(agency).slice(0, 200) : undefined,
-            Source: "nape-leadership-platform",
-            Submitted: new Date().toISOString()
-          }
-        }],
-        typecast: true
-      })
+      body: JSON.stringify({ ...extra, records: [{ fields }], typecast: true })
     });
+
+    // Upsert on Email so resubmits (and "Update my info") update the existing
+    // row instead of creating duplicates.
+    let r = await send({ performUpsert: { fieldsToMergeOn: ["Email"] } });
+    if (!r.ok) {
+      // Upsert fails when Email already matches multiple rows (legacy
+      // duplicates) — fall back to a plain create so no submission is lost.
+      const detail = await r.text().catch(() => "");
+      console.error("Airtable upsert failed, falling back to create:", r.status, detail);
+      r = await send({});
+    }
 
     if (!r.ok) {
       const detail = await r.text().catch(() => "");

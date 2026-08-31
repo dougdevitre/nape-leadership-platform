@@ -123,7 +123,7 @@ const PROMPTS = {
 
 const params = new URLSearchParams(location.search);
 let curStage = params.get("stage") || NAPE.get(NAPE.KEYS.STAGE, "self");
-if(!PROMPTS[curStage]) curStage = "self";
+if(typeof curStage !== "string" || !Object.hasOwn(PROMPTS, curStage)) curStage = "self";
 let pIdx = 0;
 let editingId = null;
 let entryFilter = "all";

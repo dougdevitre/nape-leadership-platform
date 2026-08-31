@@ -116,9 +116,12 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
     if (!(await page.$('footer a[href="/privacy"]'))) throw new Error(p + ": footer privacy link missing");
   }
 
-  // 6. Unknown paths get the 404 page
+  // 6. Unknown paths get the 404 page — styled even at nested paths
   await page.goto(`http://localhost:${PORT}/definitely-not-a-page`);
   if (!(await page.textContent("body")).includes("404")) throw new Error("404 page not served");
+  await page.goto(`http://localhost:${PORT}/programs/2026`);
+  const navPos = await page.evaluate(() => getComputedStyle(document.querySelector(".site-nav")).position);
+  if (navPos !== "sticky") throw new Error("404 page assets don't resolve at nested paths");
 
   if (errors.length) throw new Error("page errors:\n" + errors.join("\n"));
   console.log("smoke: all checks passed");
