@@ -14,10 +14,13 @@ growth.html         Goal/milestone tracker (planned → complete → approved), 
 reflections.html    Guided journal with stats, filters, edit
 resources.html      Program features + one-tap practice library
 connect.html        Interest form (posts to /api/interest)
+report.html         Print-ready growth report (browser "Save as PDF"; data stays on device)
+certificate.html    Print-ready certificate (participation / progress / completion, landscape)
 privacy.html        Privacy Notice (local-only data, form data, providers, clear-data button)
 terms.html          Terms & Disclaimers (prototype status, no-advice, as-is)
 404.html            Not-found page
 api/interest.js     Vercel serverless function → Airtable "Interest" table (upserts on Email)
+api/feedback.js     Serverless function → Airtable "Prototype Feedback" table (site-wide widget)
 assets/app.js       Shared storage (localStorage), nav hydration, toast, starter-goal engine
 assets/styles.css   Design system (navy/teal/gold, Fraunces + Public Sans)
 assets/favicon.svg  Browser-tab icon

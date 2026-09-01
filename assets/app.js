@@ -139,6 +139,91 @@ function napeAddGoal(stage, title, milestones) {
   });
 })();
 
+/* ---------- Prototype feedback widget ---------- */
+(function initFeedback() {
+  if (!document.querySelector(".site-nav")) return;
+
+  const PAGE_MAP = { "": "Home", "index": "Home", "journey": "Journey", "growth": "Growth Plan", "reflections": "Reflections", "resources": "Resources", "connect": "Connect" };
+  const seg = (location.pathname.split("/").pop() || "").replace(/\.html$/, "");
+  const current = Object.hasOwn(PAGE_MAP, seg) ? PAGE_MAP[seg] : "General";
+  const PAGES = ["Home", "Journey", "Growth Plan", "Reflections", "Resources", "Connect", "General"];
+  const TYPES = ["Bug", "Content", "Design", "Idea", "Question"];
+
+  const wrap = document.createElement("div");
+  wrap.className = "fb no-print";
+  wrap.innerHTML = `
+    <div class="fb-panel" id="fb-panel" hidden>
+      <p class="fb-title">Feedback on this prototype</p>
+      <label class="fb-label" for="fb-text">What's working, broken, or missing?</label>
+      <textarea id="fb-text" rows="4"></textarea>
+      <div class="fb-row">
+        <select id="fb-page" aria-label="Which page">
+          ${PAGES.map(p => `<option${p === current ? " selected" : ""}>${p}</option>`).join("")}
+        </select>
+        <select id="fb-type" aria-label="Feedback type">
+          <option value="">Type…</option>
+          ${TYPES.map(t => `<option>${t}</option>`).join("")}
+        </select>
+      </div>
+      <input id="fb-from" type="text" placeholder="Your name (optional)" aria-label="Your name (optional)">
+      <div style="position:absolute;left:-9999px" aria-hidden="true"><input id="fb-web" tabindex="-1" autocomplete="off"></div>
+      <div class="fb-row">
+        <button class="btn btn-gold btn-small" id="fb-send">Send feedback</button>
+        <span class="fb-note" id="fb-note" role="status"></span>
+      </div>
+    </div>
+    <button class="fb-btn" id="fb-open" aria-expanded="false" aria-controls="fb-panel">Feedback</button>`;
+  document.body.append(wrap);
+
+  const panel = wrap.querySelector("#fb-panel");
+  const openBtn = wrap.querySelector("#fb-open");
+  const note = wrap.querySelector("#fb-note");
+  openBtn.addEventListener("click", () => {
+    panel.hidden = !panel.hidden;
+    openBtn.setAttribute("aria-expanded", String(!panel.hidden));
+    if (!panel.hidden) wrap.querySelector("#fb-text").focus();
+  });
+
+  wrap.querySelector("#fb-send").addEventListener("click", async () => {
+    const text = wrap.querySelector("#fb-text").value.trim();
+    if (!text) { note.textContent = "Write a note first."; return; }
+    const btn = wrap.querySelector("#fb-send");
+    btn.disabled = true;
+    note.textContent = "Sending…";
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text,
+          page: wrap.querySelector("#fb-page").value,
+          type: wrap.querySelector("#fb-type").value,
+          from: wrap.querySelector("#fb-from").value.trim(),
+          website: wrap.querySelector("#fb-web").value
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        note.textContent = "Thanks — feedback sent.";
+        wrap.querySelector("#fb-text").value = "";
+        setTimeout(() => {
+          panel.hidden = true;
+          openBtn.setAttribute("aria-expanded", "false");
+          note.textContent = "";
+        }, 1800);
+      } else if (res.status === 503) {
+        note.textContent = "Feedback isn't set up yet — please email the team instead.";
+      } else {
+        note.textContent = (data && data.error) || "Couldn't send — please try again.";
+      }
+    } catch (e) {
+      note.textContent = "Network issue — please try again.";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
+
 /* ---------- Helpers ---------- */
 function napeUid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);

@@ -80,6 +80,16 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   if ((await page.getAttribute('.stage-btn[data-stage="others"]', "aria-selected")) !== "true")
     throw new Error("stage tablist arrow-key navigation broken");
 
+  // 2c. Feedback widget: prefills the page, sends, and confirms
+  await page.route("**/api/feedback", r => r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }));
+  await page.goto(`http://localhost:${PORT}/journey`);
+  await page.click("#fb-open");
+  if ((await page.inputValue("#fb-page")) !== "Journey") throw new Error("feedback widget page not prefilled");
+  await page.fill("#fb-text", "Test feedback from smoke run");
+  await page.click("#fb-send");
+  await page.waitForFunction(() => document.getElementById("fb-note").textContent.includes("Thanks"));
+  await page.unroute("**/api/feedback");
+
   // 3. Interest form: 503 shows the pending message, 200 shows success
   await page.route("**/api/interest", r => r.fulfill({ status: 503, contentType: "application/json", body: '{"ok":false,"error":"not_configured"}' }));
   await page.goto(`http://localhost:${PORT}/connect`);
@@ -116,7 +126,33 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
     if (!(await page.$('footer a[href="/privacy"]'))) throw new Error(p + ": footer privacy link missing");
   }
 
-  // 6. Unknown paths get the 404 page — styled even at nested paths
+  // 6. Report and certificate render from localStorage data
+  await page.goto(`http://localhost:${PORT}/growth`);
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem("nape_profile_v1", JSON.stringify({ name: "Pat Example", submitted: true }));
+    localStorage.setItem("nape_stage_v1", JSON.stringify("others"));
+    localStorage.setItem("nape_goals_v1", JSON.stringify([{
+      id: "g1", stage: "others", title: "Build a one-on-one rhythm", createdAt: 1,
+      milestones: [
+        { id: "m1", text: "Schedule recurring one-on-ones", status: "approved", approvedBy: "Chief Lee", approvedAt: 2 },
+        { id: "m2", text: "Run 2 full cycles", status: "planned" }
+      ]
+    }]));
+  });
+  await page.goto(`http://localhost:${PORT}/report`);
+  const reportText = await page.textContent("#report");
+  if (!reportText.includes("Build a one-on-one rhythm") || !reportText.includes("Chief Lee"))
+    throw new Error("report page missing plan data");
+  if ((await page.inputValue("#r-name")) !== "Pat Example") throw new Error("report name not prefilled");
+  await page.goto(`http://localhost:${PORT}/certificate`);
+  if ((await page.inputValue("#c-name-input")) !== "Pat Example") throw new Error("certificate name not prefilled");
+  const certText = await page.textContent("#cert");
+  if (!certText.includes("Lead Others") || !certText.includes("1 of 2 milestones approved"))
+    throw new Error("certificate not reflecting stage progress: " + certText.slice(0, 200));
+  await page.evaluate(() => localStorage.clear());
+
+  // 7. Unknown paths get the 404 page — styled even at nested paths
   await page.goto(`http://localhost:${PORT}/definitely-not-a-page`);
   if (!(await page.textContent("body")).includes("404")) throw new Error("404 page not served");
   await page.goto(`http://localhost:${PORT}/programs/2026`);
