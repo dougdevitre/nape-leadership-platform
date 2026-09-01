@@ -10,7 +10,7 @@ for probation chiefs, directors, and deputy leaders.
 ```
 index.html          Landing page (adaptive CTA + welcome-back strip)
 journey.html        Framework explorer + 6-question stage assessment
-growth.html         Goal/milestone tracker (planned → complete → approved), filters, import/export
+growth.html         Goal/milestone tracker (planned → complete → approved), target dates + "Due soon" view, filters, import/export
 reflections.html    Guided journal with stats, filters, edit
 resources.html      Program features + one-tap practice library
 connect.html        Interest form (posts to /api/interest)
