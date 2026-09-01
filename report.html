@@ -134,7 +134,7 @@ if (!goals.length) {
     return `<h3 style="font-size:.92rem;color:var(--teal);margin:16px 0 10px">${NAPE_STAGES[k].name}</h3>` +
       list.map(g => `
         <div class="rgoal">
-          <h3>${napeEscape(g.title)}</h3>
+          <h3>${napeEscape(g.title)}${napeValidDateStr(g.targetDate) ? ` <span class="who" style="font-weight:400">· Target ${napeDateStr(g.targetDate)}</span>` : ""}</h3>
           <ul>${(g.milestones || []).map(m => {
             const st = Object.hasOwn(ST_ICON, m.status) ? m.status : "planned";
             const [cls, icon] = ST_ICON[st];

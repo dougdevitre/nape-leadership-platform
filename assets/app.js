@@ -102,12 +102,14 @@ function napeToast(msg) {
 }
 
 /* ---------- Add goal (shared) ---------- */
-function napeAddGoal(stage, title, milestones) {
+function napeAddGoal(stage, title, milestones, targetDate) {
   const goals = NAPE.get(NAPE.KEYS.GOALS, []);
-  goals.push({
+  const goal = {
     id: napeUid(), stage, title, createdAt: Date.now(),
     milestones: (milestones || []).map(t => ({ id: napeUid(), text: t, status: "planned" }))
-  });
+  };
+  if (napeValidDateStr(targetDate)) goal.targetDate = targetDate;
+  goals.push(goal);
   NAPE.set(NAPE.KEYS.GOALS, goals);
   return goals;
 }
@@ -235,4 +237,19 @@ function napeEscape(s) {
 }
 function napeDate(ts) {
   return new Date(ts).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+function napeValidDateStr(s) {
+  return typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
+}
+/* Format a YYYY-MM-DD string in local time (avoids the UTC shift of new Date("YYYY-MM-DD")). */
+function napeDateStr(s) {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+/* Days from today (local midnight) to a YYYY-MM-DD target; negative = overdue. */
+function napeDaysUntil(s) {
+  const [y, m, d] = s.split("-").map(Number);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.round((new Date(y, m - 1, d) - today) / 86400000);
 }

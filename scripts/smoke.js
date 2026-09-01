@@ -71,6 +71,31 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   const goalsText = await page.textContent("#goals");
   if (!goalsText.includes("no ms") || !goalsText.includes("ok")) throw new Error("imported goals not rendered");
 
+  // 2a-bis. Target dates: "Due soon" filter shows only overdue/upcoming goals; inline editor sets a date
+  await page.goto(`http://localhost:${PORT}/growth`);
+  await page.evaluate(() => {
+    localStorage.clear();
+    const day = 86400000;
+    const iso = t => new Date(t).toISOString().slice(0, 10);
+    localStorage.setItem("nape_goals_v1", JSON.stringify([
+      { id: "d1", stage: "self", title: "Overdue goal", createdAt: 1, targetDate: iso(Date.now() - 2 * day), milestones: [{ id: "dm1", text: "x", status: "planned" }] },
+      { id: "d2", stage: "self", title: "Far-future goal", createdAt: 1, targetDate: iso(Date.now() + 60 * day), milestones: [{ id: "dm2", text: "y", status: "planned" }] },
+      { id: "d3", stage: "self", title: "No-date goal", createdAt: 1, milestones: [{ id: "dm3", text: "z", status: "planned" }] }
+    ]));
+  });
+  await page.reload();
+  if (!(await page.textContent("#goals")).includes("Overdue · was")) throw new Error("overdue target chip missing");
+  await page.click('.chip[data-f="due"]');
+  const dueText = await page.textContent("#goals");
+  if (!dueText.includes("Overdue goal") || dueText.includes("Far-future goal") || dueText.includes("No-date goal"))
+    throw new Error("Due soon filter wrong: " + dueText.slice(0, 200));
+  await page.click('.chip[data-f="all"]');
+  await page.click('[data-act="target-start"][data-g="d3"]');
+  await page.fill("[data-tgin]", new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10));
+  await page.click('[data-act="target-save"][data-g="d3"]');
+  if (!(await page.textContent("#goals")).includes("Due in 3d")) throw new Error("target-save did not set date");
+  await page.evaluate(() => localStorage.clear());
+
   // 2b. Journey stage tabs support arrow-key navigation
   await page.goto(`http://localhost:${PORT}/journey`);
   await page.evaluate(() => localStorage.clear());
