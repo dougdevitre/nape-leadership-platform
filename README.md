@@ -31,6 +31,13 @@ scripts/smoke.js    Headless-browser smoke test (also runs in GitHub Actions CI)
 Pages are served at clean URLs (`/journey`, not `/journey.html`) via `cleanUrls`
 in `vercel.json`; internal links use the clean form.
 
+## Outreach and promotion
+
+`docs/OUTREACH-CONTENT-PLAN.md` is the plan for the promotion layer around this
+platform: outreach copy, talk-track scripts, graphic design assets, and the
+platform changes (OG images, UTM capture, `/faq`, `/toolkit`) that make them
+work and make them measurable. Phased; Phase 1 is the minimum announcement kit.
+
 ## Prototype disclosures
 
 Every page carries a prototype banner and footer links to the Privacy Notice
