@@ -33,7 +33,7 @@ const server = http.createServer((req, res) => {
   }
 }).listen(PORT);
 
-const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connections", "/connect"];
+const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connect"];
 
 (async () => {
   const launchOpts = {};
@@ -132,10 +132,12 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   await page.waitForSelector(".confirm.show");
   if (!(await page.textContent("#f-confirm")).includes("you're on the list")) throw new Error("200 path broken");
 
-  // 3b. Connections: directory falls back to the snapshot when the API is unconfigured,
-  //     a campaign builds from the form, progress persists, and it can join the growth plan
+  // 3b. Connect page carries both the interest form and the partner-connection tool. The tool's
+  //     directory falls back to the snapshot when the API is unconfigured, a campaign builds from
+  //     the form, progress persists, and it can join the growth plan
   await page.route("**/api/agencies", r => r.fulfill({ status: 503, contentType: "application/json", body: '{"ok":false,"error":"not_configured"}' }));
-  await page.goto(`http://localhost:${PORT}/connections`);
+  await page.goto(`http://localhost:${PORT}/connect`);
+  if (!(await page.$("#interest-form")) || !(await page.$("#cx-form"))) throw new Error("connect page missing the interest form or the connection tool");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.waitForFunction(() => document.querySelectorAll("#cx-partner option").length > 10);
@@ -157,11 +159,18 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
     throw new Error("draft not templated with both agencies: " + draft0.slice(0, 120));
   const draft1 = await page.inputValue("#cx-draft-1");
   if (!draft1.includes("Hello Dr. Rivera,") || draft1.includes("[Name]")) throw new Error("contact name not used in greeting");
+  // By-Laws guardrails: general card shown; vendor notice and procurement line only for sponsors
+  const guard = await page.textContent("#cx-guardrails");
+  if (!guard.includes("not as NAPE") || guard.includes("event sponsor")) throw new Error("guardrails wrong for a non-vendor partner: " + guard.slice(0, 120));
+  if (draft1.includes("procurement")) throw new Error("procurement line leaked into a non-vendor draft");
   await page.click('[data-done="0"]');
   await page.reload();
   await page.waitForSelector("#cx-campaign:not([hidden])");
   if (!(await page.textContent("#cx-head")).includes("1 of 6 steps done")) throw new Error("campaign progress did not persist");
   if (!(await page.$("#cx-saved:not([hidden]) .cx-item"))) throw new Error("saved campaign list missing");
+  // The campaign builder saved a profile; the interest form must prefill from it, not flag a failed send
+  if ((await page.inputValue("#f-name")) !== "Pat Example") throw new Error("interest form not prefilled from the campaign profile");
+  if ((await page.textContent("#f-note")).includes("didn't reach")) throw new Error("interest form wrongly reports a failed submission");
   await page.click("#cx-add-goal");
   const cxGoals = await page.evaluate(() => JSON.parse(localStorage.getItem("nape_goals_v1") || "[]"));
   if (cxGoals.length !== 1 || cxGoals[0].milestones.length !== 6) throw new Error("add-to-growth-plan did not create a 6-milestone goal");
@@ -181,9 +190,28 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   if (!warm.includes("Hello Vanessa Farmer,") || !warm.includes("National Institute of Corrections")) throw new Error("warm intro draft not templated: " + warm.slice(0, 120));
   const mailHref = await page.getAttribute("#cx-warm-mail", "href");
   if (!mailHref || !mailHref.startsWith("mailto:vfarmer%40shsu.edu?subject=")) throw new Error("warm intro mailto link missing: " + mailHref);
+  if (!warm.includes("courtesy, not an endorsement")) throw new Error("warm intro missing the courtesy/no-endorsement line");
   await page.click("#cx-warm-done");
   await page.reload();
   await page.waitForSelector("#cx-warm .step.done");
+  // Sponsor partner: vendor guardrail and procurement language appear
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForFunction(() => document.querySelectorAll("#cx-partner option").length > 10);
+  await page.selectOption("#cx-my-agency", "__other");
+  await page.fill("#cx-my-agency-other", "Example County Probation");
+  await page.selectOption("#cx-my-role", "Chief / Director");
+  await page.selectOption("#cx-partner", { label: "Tyler Technologies" });
+  await page.selectOption("#cx-partner-role", "Account or Partnerships Manager");
+  await page.click('.goal-card[data-goal="establish"]');
+  await page.click("#cx-build");
+  await page.waitForSelector("#cx-campaign:not([hidden])");
+  const vguard = await page.textContent("#cx-guardrails");
+  if (!vguard.includes("event sponsor") || !vguard.includes("Art. I §1.C")) throw new Error("vendor guardrail missing for a sponsor partner");
+  if (!(await page.inputValue("#cx-draft-1")).includes("not a procurement or purchasing commitment")) throw new Error("vendor draft missing procurement line");
+  await page.goto(`http://localhost:${PORT}/terms`);
+  if (!(await page.$("#governance")) || !(await page.textContent("#governance ~ ul")).includes("Corporate members")) throw new Error("terms governance section missing");
+  await page.goto(`http://localhost:${PORT}/connect`);
   await page.unroute("**/api/agencies");
 
   // Airtable-edited guidance wins over the built-in defaults: a live API payload with custom

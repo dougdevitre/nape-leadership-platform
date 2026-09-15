@@ -21,7 +21,7 @@ function rateLimited(ip) {
 }
 
 // Must match the singleSelect choices in the Airtable table.
-const PAGES = ["Home", "Journey", "Growth Plan", "Reflections", "Resources", "Connections", "Connect", "General"];
+const PAGES = ["Home", "Journey", "Growth Plan", "Reflections", "Resources", "Connect", "General"];
 const TYPES = ["Bug", "Content", "Design", "Idea", "Question"];
 
 module.exports = async (req, res) => {

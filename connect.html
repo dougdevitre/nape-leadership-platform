@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Connect — NAPE Leadership</title>
-<meta name="description" content="Share your interest and be first to hear when the NAPE executive leadership experience launches.">
+<meta name="description" content="Build an outreach campaign from your agency to a partner organization, and share your interest to hear first when the NAPE executive leadership experience launches.">
 <meta name="theme-color" content="#1E2E4F">
 <meta property="og:site_name" content="NAPE Executive Leadership Experience">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Connect — NAPE Leadership">
-<meta property="og:description" content="Share your interest and be first to hear when the NAPE executive leadership experience launches.">
+<meta property="og:description" content="Build an outreach campaign from your agency to a partner organization, and share your interest to hear first when the NAPE executive leadership experience launches.">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +30,6 @@
       <li><a href="/growth">Growth Plan</a></li>
       <li><a href="/reflections">Reflections</a></li>
       <li><a href="/resources">Resources</a></li>
-      <li><a href="/connections">Connections</a></li>
       <li><a href="/connect" class="active" aria-current="page">Connect</a></li>
       <li><a class="nav-progress" href="/growth"><span class="dot"></span><span data-progress>Start your plan</span></a></li>
     </ul>
@@ -39,7 +38,120 @@
 
 <div class="proto-banner" role="note">Prototype preview — for demonstration and feedback only. Program details are subject to change and Board approval. <a href="/terms">Learn more</a></div>
 
-<section style="padding-top:56px">
+<section id="connections" style="padding-top:56px">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="banner-tag">Connect</span>
+      <h2>Build a bridge from your agency to a partner</h2>
+      <p>Choose your agency and role, choose the organization and the person you want to reach, and get a dated outreach campaign with ready-to-edit messages — plus a map of how you can support one another in each role. Progress is saved on this device. Want launch updates instead? <a href="#interest">Join the interest list</a> below.</p>
+    </div>
+
+    <div class="card cx-form loading" id="cx-form" role="form" aria-label="Set up a connection">
+      <div class="grid-2">
+        <div>
+          <p class="cx-col-label">Your side</p>
+          <div class="form-field">
+            <label for="cx-name">Your name</label>
+            <input id="cx-name" type="text" autocomplete="name" placeholder="Used in message signatures">
+          </div>
+          <div class="form-field">
+            <label for="cx-my-agency">Your agency</label>
+            <select id="cx-my-agency"><option value="">Loading directory…</option></select>
+          </div>
+          <div class="form-field" id="cx-my-agency-other-wrap" hidden>
+            <label for="cx-my-agency-other">Agency name</label>
+            <input id="cx-my-agency-other" type="text" placeholder="e.g., County Probation Department">
+          </div>
+          <div class="form-field">
+            <label for="cx-my-role">Your role</label>
+            <select id="cx-my-role"></select>
+          </div>
+        </div>
+        <div>
+          <p class="cx-col-label">Partner side</p>
+          <div class="form-field">
+            <label for="cx-partner">Partner organization</label>
+            <select id="cx-partner"><option value="">Loading directory…</option></select>
+            <p class="dir-note" id="cx-dir-note" aria-live="polite">Loading NAPE's partner directory…</p>
+          </div>
+          <div class="form-field">
+            <label for="cx-partner-role">Who you're trying to reach</label>
+            <select id="cx-partner-role"></select>
+          </div>
+          <div class="form-field">
+            <label for="cx-contact">Their name, if you know it</label>
+            <input id="cx-contact" type="text" placeholder="Used in greetings — leave blank to fill in later">
+          </div>
+          <div class="form-field">
+            <label for="cx-start">Campaign start date</label>
+            <input id="cx-start" type="date">
+          </div>
+        </div>
+      </div>
+
+      <p class="cx-col-label" id="cx-goal-label">What should this connection do?</p>
+      <div class="goal-cards" role="radiogroup" aria-labelledby="cx-goal-label">
+        <div class="goal-card" role="radio" tabindex="0" aria-checked="false" data-goal="establish">
+          <h4>Establish</h4>
+          <p>You haven't worked together before. Build credibility, earn a first conversation, and land one next step.</p>
+          <span class="goal-meta">About 6 weeks · 6 touches</span>
+        </div>
+        <div class="goal-card" role="radio" tabindex="0" aria-checked="false" data-goal="reconnect">
+          <h4>Reconnect</h4>
+          <p>The thread went quiet. Acknowledge the gap gracefully and rebuild a rhythm.</p>
+          <span class="goal-meta">About 3 weeks, then quarterly · 6 touches</span>
+        </div>
+        <div class="goal-card" role="radio" tabindex="0" aria-checked="false" data-goal="support">
+          <h4>Support one another</h4>
+          <p>The relationship exists. Map what each role can offer and commit to one small collaboration.</p>
+          <span class="goal-meta">About 90 days · 6 touches</span>
+        </div>
+      </div>
+      <input type="hidden" id="cx-goal" value="establish">
+
+      <div class="cx-build-row">
+        <button class="btn btn-gold" id="cx-build">Build my campaign</button>
+        <span class="cx-error" id="cx-error" role="alert"></span>
+      </div>
+      <p class="connect-note">Nothing you enter here is sent anywhere. The campaign and your notes stay in this browser. Messages are drafts for you to edit and send from your own email.</p>
+    </div>
+  </div>
+</section>
+
+<section id="cx-campaign" hidden style="padding-top:0">
+  <div class="wrap">
+    <div class="cx-head" id="cx-head"></div>
+
+    <div id="cx-guardrails" hidden></div>
+
+    <div class="grid-2 cx-grid">
+      <div class="card cx-brief" id="cx-brief"></div>
+      <div class="card">
+        <h3 class="cx-h3">How you can support one another</h3>
+        <div class="support-grid" id="cx-support"></div>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:44px;margin-bottom:22px">
+      <h2 style="font-size:1.5rem">Your outreach campaign</h2>
+      <p>Each step has a draft you can edit and copy. Fill in the bracketed parts, send from your own email, then mark the step done and jot a note.</p>
+    </div>
+    <div id="cx-warm" hidden></div>
+    <div id="cx-steps"></div>
+  </div>
+</section>
+
+<section class="cx-saved no-print" id="cx-saved" hidden style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head" style="margin-bottom:18px">
+      <h2 style="font-size:1.4rem">Your campaigns</h2>
+      <p>Saved on this device. Open one to pick up where you left off.</p>
+    </div>
+    <div id="cx-saved-list"></div>
+  </div>
+</section>
+
+<section id="interest" class="no-print" style="padding-top:0">
   <div class="wrap">
     <div class="section-head">
       <span class="banner-tag">Stay connected</span>
@@ -75,7 +187,7 @@
           <input id="f-website" type="text" tabindex="-1" autocomplete="off">
         </div>
         <button class="btn btn-gold" id="f-submit">Count me in</button>
-        <p class="connect-note" id="f-note">By selecting "Count me in," you agree that NAPE may store your name and email and contact you about this program — nothing else, and never sold or shared for marketing. See the <a href="/privacy">Privacy Notice</a>.</p>
+        <p class="connect-note" id="f-note">By selecting "Count me in," you agree that NAPE may store your name and email and contact you about this program — nothing else, and never sold or shared for marketing. See the <a href="/privacy">Privacy Notice</a>. Joining this list is not a NAPE membership application and does not change membership status, dues, or voting rights, which are governed by the NAPE By-Laws.</p>
       </div>
       <div class="confirm" id="f-confirm"></div>
       <div id="f-after" style="display:none;margin-top:14px">
@@ -90,11 +202,12 @@
   <div class="wrap">
     <p class="tagline">Strong leaders. Stronger organizations. Stronger communities.</p>
     <p>NAPE Executive Leadership Experience — coming soon</p>
-    <p class="foot-legal">This is a prototype for demonstration and feedback — not a live NAPE program. <a href="/privacy">Privacy Notice</a> · <a href="/terms">Terms &amp; Disclaimers</a></p>
+    <p class="foot-legal">This is a prototype for demonstration and feedback — not a live NAPE program. Partner listings come from NAPE's related-links directory and are not endorsements. <a href="/privacy">Privacy Notice</a> · <a href="/terms">Terms &amp; Disclaimers</a></p>
   </div>
 </footer>
 
 <script src="assets/app.js"></script>
+<script src="assets/connections.js"></script>
 <script>
 const saved = NAPE.get(NAPE.KEYS.PROFILE, null);
 const formEl = document.getElementById("interest-form");
@@ -124,13 +237,16 @@ function showForm(){
   }
 }
 
-if (saved && saved.submitted) {
+if (saved && saved.submitted === true) {
   showConfirm(saved.name || "friend");
-} else if (saved) {
+} else if (saved && saved.submitted === false) {
   // An earlier attempt never reached NAPE — prefill and ask them to resend.
   showForm();
   noteEl.textContent = "Your earlier submission didn't reach NAPE — please send it again.";
   noteEl.style.color = "#A34B3D";
+} else if (saved) {
+  // Profile saved by another tool on this device (e.g. the partner-connection builder): just prefill.
+  showForm();
 }
 
 document.getElementById("f-update").addEventListener("click", showForm);
