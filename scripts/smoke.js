@@ -171,6 +171,34 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   // The campaign builder saved a profile; the interest form must prefill from it, not flag a failed send
   if ((await page.inputValue("#f-name")) !== "Pat Example") throw new Error("interest form not prefilled from the campaign profile");
   if ((await page.textContent("#f-note")).includes("didn't reach")) throw new Error("interest form wrongly reports a failed submission");
+  // Opt-in sharing: off by default; when on, sends a summary that excludes the contact name, drafts,
+  // and step notes; marking a step done re-sends automatically; 503 shows the not-set-up message
+  const sent = [];
+  await page.route("**/api/connections", r => { sent.push(JSON.parse(r.request().postData())); r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }); });
+  if (!(await page.$("#cx-share-optin")) || (await page.isChecked("#cx-share-optin"))) throw new Error("sharing toggle missing or not off by default");
+  await page.check("#cx-share-optin");
+  await page.waitForFunction(() => document.getElementById("cx-share-status").textContent.includes("Sent to NAPE"));
+  await page.selectOption("#cx-share-state", "Connected");
+  await page.fill("#cx-share-note", "Agreed on a training pilot.");
+  await page.fill("[data-note='1']", "Spoke with Dr. Rivera on Tuesday"); // step note must NOT be shared
+  await page.click("#cx-share-send");
+  await page.waitForFunction(n => window.__x = n, sent.length); // no-op wait to flush
+  const last = sent[sent.length - 1];
+  const raw = JSON.stringify(last);
+  if (last.status !== "Connected" || last.note !== "Agreed on a training pilot." || last.partner !== "National Institute of Corrections" || last.stepsDone !== 1 || last.totalSteps !== 6 || last.consent !== true)
+    throw new Error("share payload wrong: " + raw.slice(0, 300));
+  if (raw.includes("Rivera") || raw.includes("Hello") || "contactName" in last || "steps" in last) throw new Error("share payload leaks contact, drafts, or notes: " + raw.slice(0, 300));
+  const before = sent.length;
+  await page.click('[data-done="1"]');
+  await page.waitForFunction(() => document.querySelectorAll("#cx-steps .step.done").length === 2);
+  await page.waitForFunction(() => true);
+  await page.evaluate(() => new Promise(r => setTimeout(r, 300)));
+  if (sent.length <= before || sent[sent.length - 1].stepsDone !== 2) throw new Error("marking a step done did not auto-send an update");
+  await page.unroute("**/api/connections");
+  await page.route("**/api/connections", r => r.fulfill({ status: 503, contentType: "application/json", body: '{"ok":false,"error":"not_configured"}' }));
+  await page.click("#cx-share-send");
+  await page.waitForFunction(() => document.getElementById("cx-share-status").textContent.includes("isn't set up"));
+  await page.unroute("**/api/connections");
   await page.click("#cx-add-goal");
   const cxGoals = await page.evaluate(() => JSON.parse(localStorage.getItem("nape_goals_v1") || "[]"));
   if (cxGoals.length !== 1 || cxGoals[0].milestones.length !== 6) throw new Error("add-to-growth-plan did not create a 6-milestone goal");

@@ -18,6 +18,7 @@ jobs:
           node --check api/interest.js
           node --check api/feedback.js
           node --check api/agencies.js
+          node --check api/connections.js
           node --check assets/app.js
           node --check assets/connections.js
       - name: Install Playwright
