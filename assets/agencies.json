@@ -2,7 +2,7 @@
   "ok": true,
   "source": "snapshot",
   "generatedAt": "2026-09-15",
-  "note": "Snapshot of the NAPE partner directory (Airtable base appvCa1Ac6c200uyu, tables Resource Links + Sponsors + NAPE Org Info). Used only when /api/agencies is unavailable. Listings are not endorsements by NAPE.",
+  "note": "Snapshot of the NAPE partner directory (Airtable base appvCa1Ac6c200uyu, tables Resource Links + Sponsors + NAPE Org Info + Category Profiles + Role Profiles). Used only when /api/agencies is unavailable. Listings are not endorsements by NAPE.",
   "nape": {
     "name": "National Association of Probation Executives (NAPE)",
     "contactName": "Vanessa Farmer, Secretariat",
@@ -10,46 +10,325 @@
     "contactPhone": "936-294-1706",
     "sourcePage": "https://www.napehome.org/related-links.html"
   },
+  "content": {
+    "categories": {
+      "Federal Agency": {
+        "offers": [
+          "Funding and grant solicitations",
+          "Training and technical assistance",
+          "National data, standards, and guidance",
+          "Visibility for local innovations"
+        ],
+        "wants": [
+          "Field data and outcomes from real caseloads",
+          "Practitioner feedback on programs and guidance",
+          "Pilot sites for new initiatives",
+          "Success stories for national reports"
+        ],
+        "opener": "our agency is working on priorities that overlap with your mission, and I'd like to understand how local agencies can plug in",
+        "ask": "which programs or technical-assistance channels are the best fit for an agency like ours"
+      },
+      "Federal Program (NIJ)": {
+        "offers": [
+          "Research-based evaluation methods",
+          "Technology testing and evaluation",
+          "Evidence briefs you can act on"
+        ],
+        "wants": [
+          "Agencies willing to be test or evaluation sites",
+          "Operational questions worth researching",
+          "Candid feedback on tools in the field"
+        ],
+        "opener": "we're weighing decisions that would benefit from evidence, and your program's evaluation work is directly relevant",
+        "ask": "whether there is a path for an agency like ours to participate in testing or evaluation"
+      },
+      "Federal Resource": {
+        "offers": [
+          "Curated research and publications",
+          "Reference services for policy and program questions",
+          "Access to archived justice literature"
+        ],
+        "wants": [
+          "Questions from the field that shape what gets curated",
+          "Practitioner examples of how research is used"
+        ],
+        "opener": "your collection is a resource our leadership team relies on, and I'd like to use it more deliberately",
+        "ask": "how agencies can best submit questions or surface topics they need covered"
+      },
+      "Professional Membership Association": {
+        "offers": [
+          "Peer network of community corrections leaders",
+          "Conferences, training, and certification",
+          "Position statements and model practices",
+          "Advocacy on issues affecting the field"
+        ],
+        "wants": [
+          "Member engagement and leadership on committees",
+          "Presenters and case studies from agencies",
+          "Ground-level input on positions and standards"
+        ],
+        "opener": "our agency wants to be a more active contributor to the field, not just a consumer of it",
+        "ask": "where a leader from our agency could contribute — a committee, a panel, or a working group"
+      },
+      "International / Professional Association": {
+        "offers": [
+          "International peer comparisons and practices",
+          "Conference and exchange opportunities",
+          "Research and standards from other systems"
+        ],
+        "wants": [
+          "U.S. practitioner perspectives and case studies",
+          "Exchange partners and hosts",
+          "Contributions to international dialogue"
+        ],
+        "opener": "we're interested in how probation is practiced beyond our own system and what we could learn from yours",
+        "ask": "whether there is an exchange, working group, or publication where a U.S. agency perspective would be welcome"
+      },
+      "Training Organization": {
+        "offers": [
+          "Staff training on specialized topics",
+          "Curriculum you can adapt",
+          "Train-the-trainer models"
+        ],
+        "wants": [
+          "Training needs assessments from the field",
+          "Cohorts of staff to train",
+          "Feedback that improves curriculum"
+        ],
+        "opener": "we're planning our staff development calendar and your training portfolio covers gaps we have",
+        "ask": "which of your offerings fit an agency of our size and whether a pilot cohort is possible"
+      },
+      "Training / Academic": {
+        "offers": [
+          "Executive and management development",
+          "Specialized certificates and courses",
+          "Access to faculty and applied research"
+        ],
+        "wants": [
+          "Leaders and staff as participants",
+          "Agency partners for applied projects",
+          "Practitioner guest instructors"
+        ],
+        "opener": "we're investing in our next generation of leaders and your programs are built for exactly that",
+        "ask": "which programs fit our leadership pipeline and how agencies typically partner with you"
+      },
+      "Policy / Research": {
+        "offers": [
+          "Independent research and policy analysis",
+          "Data and evaluation expertise",
+          "Convenings with policymakers",
+          "Credible third-party framing for your work"
+        ],
+        "wants": [
+          "Practitioner insight to ground the research",
+          "Agency data and access for studies",
+          "Real-world examples for reports and briefings"
+        ],
+        "opener": "your research touches decisions we make every day, and I'd like a practitioner voice to be part of that work",
+        "ask": "whether you're looking for agency partners on any current or upcoming projects"
+      },
+      "Nonprofit / Advocacy": {
+        "offers": [
+          "Community relationships and trust",
+          "Public education and communications reach",
+          "Policy expertise and coalition access"
+        ],
+        "wants": [
+          "Honest dialogue with system leaders",
+          "Data and stories that inform advocacy",
+          "Partnership on shared goals such as reducing unnecessary incarceration"
+        ],
+        "opener": "we share more goals than the public conversation sometimes suggests, and I'd like to find the common ground",
+        "ask": "where our goals overlap and whether a standing conversation would be useful to both of us"
+      },
+      "Nonprofit Service Provider": {
+        "offers": [
+          "Direct services for people under supervision",
+          "Reentry and transitional support",
+          "Referral pathways and warm handoffs"
+        ],
+        "wants": [
+          "Referrals and coordinated case planning",
+          "Data-sharing agreements",
+          "A seat at the table when programs are designed"
+        ],
+        "opener": "the people we supervise are the people you serve, and our handoffs should be better than they are",
+        "ask": "how referrals currently flow between us and where one improvement would help most"
+      },
+      "Professional Network": {
+        "offers": [
+          "Connections to federal and NGO partners",
+          "Position papers, surveys, and educational media",
+          "A collective voice on policy"
+        ],
+        "wants": [
+          "Agency participation in surveys and working groups",
+          "Local stories that illustrate national issues",
+          "Leaders willing to represent the field"
+        ],
+        "opener": "our agency would like to be part of the collective voice your network brings to policy conversations",
+        "ask": "how agencies participate — surveys, working groups, or contributing to position papers"
+      },
+      "Media / Industry Resource": {
+        "offers": [
+          "Visibility for your agency's work",
+          "Industry news and vendor intelligence",
+          "Communication channels to the wider field"
+        ],
+        "wants": [
+          "Stories and expert perspectives from practitioners",
+          "Announcements and program results",
+          "Feedback on what the field needs to hear"
+        ],
+        "opener": "we have work worth sharing and want to be a reliable source for the corrections community",
+        "ask": "what kinds of stories or contributions fit your audience"
+      },
+      "Archived Research Collection": {
+        "offers": [
+          "Historical research and program evaluations",
+          "Evidence base for long-running approaches"
+        ],
+        "wants": [
+          "Awareness of how archived work is being used today"
+        ],
+        "opener": "your archive holds evaluations that are still relevant to decisions we're making",
+        "ask": "how to search the collection effectively and whether anyone still stewards it for questions"
+      },
+      "NAPE Event Sponsor": {
+        "offers": [
+          "Tools and technology for supervision and reentry",
+          "Product pilots and demonstrations",
+          "Sponsorship for events and training",
+          "Implementation support"
+        ],
+        "wants": [
+          "Candid practitioner feedback on products",
+          "Pilot sites and reference agencies",
+          "Understanding of real operational constraints"
+        ],
+        "opener": "your organization supports NAPE, and I'd like to understand how your work fits the needs of an agency like ours",
+        "ask": "a no-pressure overview of what you offer and what a pilot with an agency typically looks like"
+      }
+    },
+    "roles": {
+      "mine": [
+        {
+          "role": "Chief / Director",
+          "offers": [
+            "Executive sponsorship and agency-wide adoption",
+            "Data-sharing or partnership agreements",
+            "Testimony, speaking, and public credibility",
+            "A pilot site with leadership commitment"
+          ]
+        },
+        {
+          "role": "Deputy Chief / Deputy Director",
+          "offers": [
+            "Operational leadership to implement anything agreed",
+            "Staff coordination and project management",
+            "Process and workflow feedback from the inside",
+            "A named point of contact who follows through"
+          ]
+        },
+        {
+          "role": "Supervisor preparing for a senior role",
+          "offers": [
+            "Frontline insight into what works and what doesn't",
+            "A pilot unit and staff champions",
+            "Honest feedback on training and tools",
+            "Energy to run a small collaboration end to end"
+          ]
+        },
+        {
+          "role": "Other probation professional",
+          "offers": [
+            "Subject-matter expertise and practitioner perspective",
+            "Participation in surveys, panels, and working groups",
+            "Real cases and examples (appropriately de-identified)",
+            "A bridge to the right decision-makers in the agency"
+          ]
+        }
+      ],
+      "partner": [
+        {
+          "role": "Executive Director / CEO",
+          "opens": "organization-level commitment, partnership agreements, and a seat at strategic conversations"
+        },
+        {
+          "role": "President / Board Chair",
+          "opens": "board-level visibility, strategic priorities, and introductions across their leadership"
+        },
+        {
+          "role": "Program or Training Director",
+          "opens": "training slots, curriculum, technical assistance, and program pilots"
+        },
+        {
+          "role": "Research / Policy Lead",
+          "opens": "data, evaluation partnerships, briefs, and research opportunities"
+        },
+        {
+          "role": "Membership / Partnerships Lead",
+          "opens": "introductions, joint events, member access, and co-branded initiatives"
+        },
+        {
+          "role": "Regional or Chapter Lead",
+          "opens": "regional peers, local events, and practical on-the-ground collaboration"
+        },
+        {
+          "role": "Communications / Editor",
+          "opens": "visibility for your agency's work, publications, and speaking opportunities"
+        },
+        {
+          "role": "Account or Partnerships Manager",
+          "opens": "demonstrations, pilots, pricing options, and implementation support"
+        },
+        {
+          "role": "Not sure yet",
+          "opens": "the right person inside the organization — start with whoever is listed publicly and ask to be routed"
+        }
+      ]
+    }
+  },
   "agencies": [
-    {"id": "receRQwhpqOsK7nhQ", "name": "American Probation and Parole Association", "acronym": "APPA", "category": "Professional Membership Association", "description": "Leading professional membership association for the community corrections field; members across government and private sector in the U.S., Canada, and other countries.", "url": "http://www.appa-net.org", "notes": ""},
-    {"id": "recU7OJLsEJx1VZ4c", "name": "American Youth Policy Forum", "acronym": "AYPF", "category": "Policy / Research", "description": "Nonprofit, nonpartisan professional development org providing learning opportunities for policy leaders, practitioners, and researchers on education, youth, and workforce policy.", "url": "http://www.aypf.org", "notes": ""},
-    {"id": "rec0UQpgjXWjRkdqs", "name": "Association of Probation Officers of Wielkopolska", "acronym": "APOW", "category": "International / Professional Association", "description": "Polish regional probation officers' association (Wielkopolska district); grown from 49 to 260+ members across 8 districts since 1999.", "url": "https://kurator.org.pl/", "notes": ""},
-    {"id": "reczC00RvWhpSucl6", "name": "Averhealth", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://averhealth.com/", "notes": "", "sponsorTier": "Silver"},
-    {"id": "recgwbadXLtpcLWOb", "name": "Brookings Institution", "acronym": "", "category": "Policy / Research", "description": "Nonprofit public policy organization (Washington, DC) conducting research on local, national, and global problems; traces to the 1916 Institute for Government Research.", "url": "http://www.brook.edu", "notes": ""},
-    {"id": "recgnDHy3V0f6vxvy", "name": "Buddi", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://www.buddi.com", "notes": "", "sponsorTier": "Silver"},
-    {"id": "recuMq1tRy3cWf5Ha", "name": "Bureau of Justice Assistance", "acronym": "BJA", "category": "Federal Agency", "description": "Created in 1984 to reduce violent crime and reform the justice system; provides training, technical assistance, and resources to state/local/tribal justice partners.", "url": "https://www.bja.gov/", "notes": ""},
-    {"id": "rec877LchRvdTMd1h", "name": "Bureau of Justice Statistics", "acronym": "BJS", "category": "Federal Agency", "description": "DOJ's primary statistical agency; collects and disseminates data on crime, offenders, victims, and justice system operations; supports state/local/tribal statistical capacity.", "url": "http://www.bjs.gov/", "notes": ""},
-    {"id": "recFnnIMZXfampvuG", "name": "Canadian Training Institute", "acronym": "CTI", "category": "Training Organization", "description": "National voluntary organization; has trained 5,000+ individuals; supports safe customer service environments and staff/volunteer training on family violence, mental health, addictions, reentry.", "url": "http://www.canadiantraininginstitute.com", "notes": ""},
-    {"id": "recSRgkpaYWkXbZO5", "name": "CaseBase", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://www.casebase.co/", "notes": "", "sponsorTier": "Silver"},
-    {"id": "recKGVL0WScmCbkKp", "name": "Center on Juvenile/Criminal Justice", "acronym": "CJCJ", "category": "Nonprofit / Advocacy", "description": "Nonprofit, nonpartisan org focused on reducing reliance on incarceration; provides direct services, policy research, advocacy, and public education.", "url": "http://www.cjcj.org", "notes": ""},
-    {"id": "rec2TNGbgZOSXhiLQ", "name": "Community Corrections Collaborative Network", "acronym": "CCCN", "category": "Professional Network", "description": "Develops relationships with federal and NGO partners to inform community corrections policy; produces position papers, surveys, and educational media.", "url": "https://info.nicic.gov/cccn/node/1", "notes": ""},
-    {"id": "recfNA9ULhi3Ay2Xt", "name": "Community Justice Exchange", "acronym": "CJE", "category": "Nonprofit / Advocacy", "description": "Develops tactical interventions and organizing tools to end criminalization, incarceration, surveillance, and detention; supports community-based organizations nationally.", "url": "http://www.communityjusticeexchange.org", "notes": ""},
-    {"id": "recV2g7X9yJbzp8Hp", "name": "Community Resources for Justice", "acronym": "CRJ", "category": "Nonprofit Service Provider", "description": "Result of mergers among organizations focused on crime prevention, direct aid to incarcerated/formerly incarcerated people, and services for adults with developmental disabilities.", "url": "https://www.crj.org/", "notes": ""},
-    {"id": "reckf0NQ5MvkQwaWB", "name": "Conference of European Probation", "acronym": "CEP", "category": "International / Professional Association", "description": "Promotes social inclusion of offenders through community sanctions (probation, community service, mediation); works to professionalize probation nationally and across Europe.", "url": "http://www.cep-probation.org", "notes": ""},
-    {"id": "rec8vVjArS3gWgI35", "name": "Correctional Management Institute of Texas", "acronym": "CMIT", "category": "Training / Academic", "description": "Develops and delivers professional education, management development, and specialized training for juvenile and adult community/institutional corrections personnel.", "url": "http://www.cmitonline.org", "notes": ""},
-    {"id": "recuDyYJm07PtrEUC", "name": "Corrections.com", "acronym": "", "category": "Media / Industry Resource", "description": "Online brand for the global corrections community; daily news plus a vendor intelligence database; supports professional communication and collaboration.", "url": "http://www.corrections.com", "notes": ""},
-    {"id": "recITrTGFAGPAAZdw", "name": "Corrections Software Solutions", "acronym": "", "category": "NAPE Event Sponsor", "description": "Acronym: CSS", "url": "https://correctionssoftware.com/", "notes": "", "sponsorTier": "Gold"},
-    {"id": "reclDY79I7c0GgxWe", "name": "Criminal Justice Testing and Evaluation Consortium", "acronym": "CJTEC", "category": "Federal Program (NIJ)", "description": "NIJ program using research-based methodologies to enhance law enforcement, courts, and corrections agency capabilities.", "url": "http://www.nlectc.org", "notes": ""},
-    {"id": "recovLmBRQBNE5fXO", "name": "Eisenhower Foundation", "acronym": "", "category": "Nonprofit / Advocacy", "description": "DC-based continuation of the Kerner and Eisenhower Violence Commissions; focused on reducing inequality/poverty and replicating evidence-based solutions for underserved communities.", "url": "http://eisenhowerfoundation.org/", "notes": ""},
-    {"id": "recNHyuFwnu5T4708", "name": "Holon Health", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://www.holonhealth.com/", "notes": "", "sponsorTier": "Gold"},
-    {"id": "rec8rlhAO7tSSELib", "name": "International Community Corrections Association", "acronym": "ICCA", "category": "International / Professional Association", "description": "Aims to change public perception of justice-involved individuals, reduce reliance on incarceration/supervision, and promote evidence-informed community-based treatment.", "url": "https://www.icjaonline.org/", "notes": ""},
-    {"id": "recRJnj5ssip03097", "name": "International Corrections and Prisons Association", "acronym": "ICPA", "category": "International / Professional Association", "description": "Global organization (70+ countries) advancing professional and humane corrections through membership, conferences, chapters, and strategic planning support.", "url": "https://icpa.org/", "notes": ""},
-    {"id": "rec3Gok0LjMnsmt9b", "name": "Labb", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://labb.com/", "notes": "", "sponsorTier": "Silver"},
-    {"id": "recZLlpjXNal6g7JB", "name": "Manhattan Institute", "acronym": "MI", "category": "Policy / Research", "description": "Community of scholars, journalists, activists, and civic leaders focused on advancing opportunity, individual liberty, and rule of law.", "url": "http://www.manhattan-institute.org", "notes": ""},
-    {"id": "rec1sGVt0WyeOC2S6", "name": "National Criminal Justice Reference Service", "acronym": "NCJRS", "category": "Federal Resource", "description": "Federally funded resource (est. 1972) offering justice and drug-related information supporting research, policy, and program development worldwide.", "url": "", "notes": "Source page's homepage link was a placeholder (#), not a live URL — left blank rather than guessing."},
-    {"id": "recvnHPLXAEjMMIBg", "name": "National Institute of Corrections", "acronym": "NIC", "category": "Federal Agency", "description": "Only federal agency with a legislative mandate (Public Law 93-415) to provide specialized services to corrections nationally; known for partnerships and interagency agreements.", "url": "http://www.nicic.gov", "notes": ""},
-    {"id": "rec4e218NV1Z8RorW", "name": "National Institute of Justice", "acronym": "NIJ", "category": "Federal Agency", "description": "Focuses on research, development, and evaluation of crime control and justice issues; funds research and technology assistance, publishes findings.", "url": "http://www.ojp.usdoj.gov/nij", "notes": ""},
-    {"id": "recMV3bo7rvManaCZ", "name": "NCTI", "acronym": "", "category": "NAPE Event Sponsor", "description": "Tagline: A Resource for Success", "url": "https://www.ncti.org/", "notes": "", "sponsorTier": "Gold"},
-    {"id": "rec8hqU2OLqKPKGF7", "name": "Office of Juvenile Justice and Delinquency Prevention", "acronym": "OJJDP", "category": "Federal Agency", "description": "Established under the Juvenile Justice and Delinquency Prevention Act of 1974; supports state/local efforts to prevent delinquency and improve juvenile justice systems.", "url": "https://www.ojp.gov/ncjrs", "notes": ""},
-    {"id": "recE3X6DKybCWQmtN", "name": "Outreach Smartphone Monitoring", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://osmnow.com/", "notes": "", "sponsorTier": "Platinum"},
-    {"id": "recyhDvlsRkNAajFE", "name": "Public/Private Ventures Legacy Collection", "acronym": "P/PV", "category": "Archived Research Collection", "description": "Former nonprofit social research/policy org (disbanded 2012); publications archived with the Foundation Center's IssueLab.", "url": "http://www.ppv.issuelab.org", "notes": ""},
-    {"id": "reczD9kZ69IBqvDgX", "name": "Recovery Monitoring Solutions Corporation", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://recoveryms.com/", "notes": "", "sponsorTier": "Silver"},
-    {"id": "recdQNVcjgwUSrEV5", "name": "Reentry Care", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://www.reentrycare.org", "notes": "", "sponsorTier": "Silver"},
-    {"id": "recoxpCqIDLoXAk3U", "name": "RemoteCom", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://remote-com.com/", "notes": "", "sponsorTier": "Silver"},
-    {"id": "rec4id2pYoe3ezFFo", "name": "SmartStart", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://www.smartstartinc.com/", "notes": "", "sponsorTier": "Gold"},
-    {"id": "recwf5cRv7o5Ng4Dk", "name": "SolusGuard", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://www.solusguard.com/", "notes": "", "sponsorTier": "Silver"},
-    {"id": "recYZjyZntW99rqpx", "name": "Tyler Technologies", "acronym": "", "category": "NAPE Event Sponsor", "description": "", "url": "https://www.tylertech.com/products/enterprise-supervision", "notes": "", "sponsorTier": "Platinum"},
-    {"id": "rec1hKHRyEcbDAono", "name": "U.S. Department of Justice", "acronym": "DOJ", "category": "Federal Agency", "description": "40+ component organizations, 115,000+ employees; headquartered at the Robert F. Kennedy Building; field offices across all U.S. states/territories and 50+ countries.", "url": "https://www.justice.gov/", "notes": ""},
-    {"id": "recnYi7on434kDznZ", "name": "Urban Institute", "acronym": "", "category": "Policy / Research", "description": "50+ year nonprofit research organization providing data/evidence to advance upward mobility and equity for changemakers.", "url": "http://www.urban.org", "notes": ""}
+    {"id":"receRQwhpqOsK7nhQ","name":"American Probation and Parole Association","acronym":"APPA","category":"Professional Membership Association","description":"Leading professional membership association for the community corrections field; members across government and private sector in the U.S., Canada, and other countries.","url":"http://www.appa-net.org","notes":""},
+    {"id":"recU7OJLsEJx1VZ4c","name":"American Youth Policy Forum","acronym":"AYPF","category":"Policy / Research","description":"Nonprofit, nonpartisan professional development org providing learning opportunities for policy leaders, practitioners, and researchers on education, youth, and workforce policy.","url":"http://www.aypf.org","notes":""},
+    {"id":"rec0UQpgjXWjRkdqs","name":"Association of Probation Officers of Wielkopolska","acronym":"APOW","category":"International / Professional Association","description":"Polish regional probation officers' association (Wielkopolska district); grown from 49 to 260+ members across 8 districts since 1999.","url":"https://kurator.org.pl/","notes":""},
+    {"id":"reczC00RvWhpSucl6","name":"Averhealth","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://averhealth.com/","notes":"","sponsorTier":"Silver"},
+    {"id":"recgwbadXLtpcLWOb","name":"Brookings Institution","acronym":"","category":"Policy / Research","description":"Nonprofit public policy organization (Washington, DC) conducting research on local, national, and global problems; traces to the 1916 Institute for Government Research.","url":"http://www.brook.edu","notes":""},
+    {"id":"recgnDHy3V0f6vxvy","name":"Buddi","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://www.buddi.com","notes":"","sponsorTier":"Silver"},
+    {"id":"recuMq1tRy3cWf5Ha","name":"Bureau of Justice Assistance","acronym":"BJA","category":"Federal Agency","description":"Created in 1984 to reduce violent crime and reform the justice system; provides training, technical assistance, and resources to state/local/tribal justice partners.","url":"https://www.bja.gov/","notes":""},
+    {"id":"rec877LchRvdTMd1h","name":"Bureau of Justice Statistics","acronym":"BJS","category":"Federal Agency","description":"DOJ's primary statistical agency; collects and disseminates data on crime, offenders, victims, and justice system operations; supports state/local/tribal statistical capacity.","url":"http://www.bjs.gov/","notes":""},
+    {"id":"recFnnIMZXfampvuG","name":"Canadian Training Institute","acronym":"CTI","category":"Training Organization","description":"National voluntary organization; has trained 5,000+ individuals; supports safe customer service environments and staff/volunteer training on family violence, mental health, addictions, reentry.","url":"http://www.canadiantraininginstitute.com","notes":""},
+    {"id":"recSRgkpaYWkXbZO5","name":"CaseBase","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://www.casebase.co/","notes":"","sponsorTier":"Silver"},
+    {"id":"recKGVL0WScmCbkKp","name":"Center on Juvenile/Criminal Justice","acronym":"CJCJ","category":"Nonprofit / Advocacy","description":"Nonprofit, nonpartisan org focused on reducing reliance on incarceration; provides direct services, policy research, advocacy, and public education.","url":"http://www.cjcj.org","notes":""},
+    {"id":"rec2TNGbgZOSXhiLQ","name":"Community Corrections Collaborative Network","acronym":"CCCN","category":"Professional Network","description":"Develops relationships with federal and NGO partners to inform community corrections policy; produces position papers, surveys, and educational media.","url":"https://info.nicic.gov/cccn/node/1","notes":""},
+    {"id":"recfNA9ULhi3Ay2Xt","name":"Community Justice Exchange","acronym":"CJE","category":"Nonprofit / Advocacy","description":"Develops tactical interventions and organizing tools to end criminalization, incarceration, surveillance, and detention; supports community-based organizations nationally.","url":"http://www.communityjusticeexchange.org","notes":""},
+    {"id":"recV2g7X9yJbzp8Hp","name":"Community Resources for Justice","acronym":"CRJ","category":"Nonprofit Service Provider","description":"Result of mergers among organizations focused on crime prevention, direct aid to incarcerated/formerly incarcerated people, and services for adults with developmental disabilities.","url":"https://www.crj.org/","notes":""},
+    {"id":"reckf0NQ5MvkQwaWB","name":"Conference of European Probation","acronym":"CEP","category":"International / Professional Association","description":"Promotes social inclusion of offenders through community sanctions (probation, community service, mediation); works to professionalize probation nationally and across Europe.","url":"http://www.cep-probation.org","notes":""},
+    {"id":"rec8vVjArS3gWgI35","name":"Correctional Management Institute of Texas","acronym":"CMIT","category":"Training / Academic","description":"Develops and delivers professional education, management development, and specialized training for juvenile and adult community/institutional corrections personnel.","url":"http://www.cmitonline.org","notes":""},
+    {"id":"recuDyYJm07PtrEUC","name":"Corrections.com","acronym":"","category":"Media / Industry Resource","description":"Online brand for the global corrections community; daily news plus a vendor intelligence database; supports professional communication and collaboration.","url":"http://www.corrections.com","notes":""},
+    {"id":"recITrTGFAGPAAZdw","name":"Corrections Software Solutions","acronym":"","category":"NAPE Event Sponsor","description":"Acronym: CSS","url":"https://correctionssoftware.com/","notes":"","sponsorTier":"Gold"},
+    {"id":"reclDY79I7c0GgxWe","name":"Criminal Justice Testing and Evaluation Consortium","acronym":"CJTEC","category":"Federal Program (NIJ)","description":"NIJ program using research-based methodologies to enhance law enforcement, courts, and corrections agency capabilities.","url":"http://www.nlectc.org","notes":""},
+    {"id":"recovLmBRQBNE5fXO","name":"Eisenhower Foundation","acronym":"","category":"Nonprofit / Advocacy","description":"DC-based continuation of the Kerner and Eisenhower Violence Commissions; focused on reducing inequality/poverty and replicating evidence-based solutions for underserved communities.","url":"http://eisenhowerfoundation.org/","notes":""},
+    {"id":"recNHyuFwnu5T4708","name":"Holon Health","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://www.holonhealth.com/","notes":"","sponsorTier":"Gold"},
+    {"id":"rec8rlhAO7tSSELib","name":"International Community Corrections Association","acronym":"ICCA","category":"International / Professional Association","description":"Aims to change public perception of justice-involved individuals, reduce reliance on incarceration/supervision, and promote evidence-informed community-based treatment.","url":"https://www.icjaonline.org/","notes":""},
+    {"id":"recRJnj5ssip03097","name":"International Corrections and Prisons Association","acronym":"ICPA","category":"International / Professional Association","description":"Global organization (70+ countries) advancing professional and humane corrections through membership, conferences, chapters, and strategic planning support.","url":"https://icpa.org/","notes":""},
+    {"id":"rec3Gok0LjMnsmt9b","name":"Labb","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://labb.com/","notes":"","sponsorTier":"Silver"},
+    {"id":"recZLlpjXNal6g7JB","name":"Manhattan Institute","acronym":"MI","category":"Policy / Research","description":"Community of scholars, journalists, activists, and civic leaders focused on advancing opportunity, individual liberty, and rule of law.","url":"http://www.manhattan-institute.org","notes":""},
+    {"id":"rec1sGVt0WyeOC2S6","name":"National Criminal Justice Reference Service","acronym":"NCJRS","category":"Federal Resource","description":"Federally funded resource (est. 1972) offering justice and drug-related information supporting research, policy, and program development worldwide.","url":"","notes":"Source page's homepage link was a placeholder (#), not a live URL — left blank rather than guessing."},
+    {"id":"recvnHPLXAEjMMIBg","name":"National Institute of Corrections","acronym":"NIC","category":"Federal Agency","description":"Only federal agency with a legislative mandate (Public Law 93-415) to provide specialized services to corrections nationally; known for partnerships and interagency agreements.","url":"http://www.nicic.gov","notes":""},
+    {"id":"rec4e218NV1Z8RorW","name":"National Institute of Justice","acronym":"NIJ","category":"Federal Agency","description":"Focuses on research, development, and evaluation of crime control and justice issues; funds research and technology assistance, publishes findings.","url":"http://www.ojp.usdoj.gov/nij","notes":""},
+    {"id":"recMV3bo7rvManaCZ","name":"NCTI","acronym":"","category":"NAPE Event Sponsor","description":"Tagline: A Resource for Success","url":"https://www.ncti.org/","notes":"","sponsorTier":"Gold"},
+    {"id":"rec8hqU2OLqKPKGF7","name":"Office of Juvenile Justice and Delinquency Prevention","acronym":"OJJDP","category":"Federal Agency","description":"Established under the Juvenile Justice and Delinquency Prevention Act of 1974; supports state/local efforts to prevent delinquency and improve juvenile justice systems.","url":"https://www.ojp.gov/ncjrs","notes":""},
+    {"id":"recE3X6DKybCWQmtN","name":"Outreach Smartphone Monitoring","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://osmnow.com/","notes":"","sponsorTier":"Platinum"},
+    {"id":"recyhDvlsRkNAajFE","name":"Public/Private Ventures Legacy Collection","acronym":"P/PV","category":"Archived Research Collection","description":"Former nonprofit social research/policy org (disbanded 2012); publications archived with the Foundation Center's IssueLab.","url":"http://www.ppv.issuelab.org","notes":""},
+    {"id":"reczD9kZ69IBqvDgX","name":"Recovery Monitoring Solutions Corporation","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://recoveryms.com/","notes":"","sponsorTier":"Silver"},
+    {"id":"recdQNVcjgwUSrEV5","name":"Reentry Care","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://www.reentrycare.org","notes":"","sponsorTier":"Silver"},
+    {"id":"recoxpCqIDLoXAk3U","name":"RemoteCom","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://remote-com.com/","notes":"","sponsorTier":"Silver"},
+    {"id":"rec4id2pYoe3ezFFo","name":"SmartStart","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://www.smartstartinc.com/","notes":"","sponsorTier":"Gold"},
+    {"id":"recwf5cRv7o5Ng4Dk","name":"SolusGuard","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://www.solusguard.com/","notes":"","sponsorTier":"Silver"},
+    {"id":"recYZjyZntW99rqpx","name":"Tyler Technologies","acronym":"","category":"NAPE Event Sponsor","description":"","url":"https://www.tylertech.com/products/enterprise-supervision","notes":"","sponsorTier":"Platinum"},
+    {"id":"rec1hKHRyEcbDAono","name":"U.S. Department of Justice","acronym":"DOJ","category":"Federal Agency","description":"40+ component organizations, 115,000+ employees; headquartered at the Robert F. Kennedy Building; field offices across all U.S. states/territories and 50+ countries.","url":"https://www.justice.gov/","notes":""},
+    {"id":"recnYi7on434kDznZ","name":"Urban Institute","acronym":"","category":"Policy / Research","description":"50+ year nonprofit research organization providing data/evidence to advance upward mobility and equity for changemakers.","url":"http://www.urban.org","notes":""}
   ]
 }

@@ -1,6 +1,6 @@
-// GET /api/agencies — returns the NAPE partner directory (Resource Links + Sponsors)
-// plus NAPE's own contact details (NAPE Org Info) from Airtable for the Connections
-// page. Read-only; no user input is forwarded.
+// GET /api/agencies — returns the NAPE partner directory (Resource Links + Sponsors),
+// NAPE's own contact details (NAPE Org Info), and the editable Connections content
+// (Category Profiles + Role Profiles) from Airtable. Read-only; no user input is forwarded.
 // Env vars on the Vercel project:
 //   AIRTABLE_TOKEN             - Airtable personal access token (needs data.records:read on the directory base)
 //   AIRTABLE_DIRECTORY_BASE_ID - base holding "Resource Links" and "Sponsors" (defaults to appvCa1Ac6c200uyu)
@@ -28,6 +28,9 @@ async function fetchAll(baseId, token, table) {
 }
 
 const text = (v, max) => (v == null ? "" : String(v)).trim().slice(0, max);
+// Multiline "one item per line" field -> array of trimmed, non-empty lines
+const lines = (v, max) => text(v, 4000).split(/\r?\n/).map(l => l.replace(/^[•\-*]\s*/, "").trim()).filter(Boolean).slice(0, max);
+const soft = (table) => (e) => { console.error(`${table} table unavailable:`, e.message); return []; };
 const httpUrl = (v) => (/^https?:\/\//i.test(String(v || "").trim()) ? String(v).trim().slice(0, 500) : "");
 
 module.exports = async (req, res) => {
@@ -42,11 +45,39 @@ module.exports = async (req, res) => {
     return;
   }
   try {
-    const [links, sponsors, orgInfo] = await Promise.all([
+    const [links, sponsors, orgInfo, catRows, roleRows] = await Promise.all([
       fetchAll(baseId, token, "Resource Links"),
-      fetchAll(baseId, token, "Sponsors").catch(e => { console.error("Sponsors table unavailable:", e.message); return []; }),
-      fetchAll(baseId, token, "NAPE Org Info").catch(e => { console.error("NAPE Org Info table unavailable:", e.message); return []; })
+      fetchAll(baseId, token, "Sponsors").catch(soft("Sponsors")),
+      fetchAll(baseId, token, "NAPE Org Info").catch(soft("NAPE Org Info")),
+      fetchAll(baseId, token, "Category Profiles").catch(soft("Category Profiles")),
+      fetchAll(baseId, token, "Role Profiles").catch(soft("Role Profiles"))
     ]);
+
+    // Editable Connections content. The page keeps built-in defaults for anything missing here.
+    const categories = {};
+    catRows.forEach(r => {
+      const name = text(r.fields.Category, 80);
+      if (!name) return;
+      categories[name] = {
+        offers: lines(r.fields["What They Offer"], 8),
+        wants: lines(r.fields["What They Value"], 8),
+        opener: text(r.fields.Opener, 400),
+        ask: text(r.fields["First Ask"], 400)
+      };
+    });
+    const bySort = (a, b) => (a.sort - b.sort) || a.role.localeCompare(b.role);
+    const roles = { mine: [], partner: [] };
+    roleRows.forEach(r => {
+      const role = text(r.fields.Role, 80);
+      const kind = text(r.fields.Kind, 40);
+      const sort = Number.isFinite(Number(r.fields["Sort Order"])) ? Number(r.fields["Sort Order"]) : 999;
+      if (!role) return;
+      if (kind === "Your role") roles.mine.push({ role, sort, offers: lines(r.fields["What You Can Offer"], 8) });
+      else if (kind === "Partner role") roles.partner.push({ role, sort, opens: text(r.fields["Opens the Door To"], 400) });
+    });
+    roles.mine.sort(bySort); roles.partner.sort(bySort);
+    roles.mine.forEach(r => delete r.sort); roles.partner.forEach(r => delete r.sort);
+    const content = { categories, roles };
 
     // "NAPE Org Info" is a Field/Value list; pick out the contact details the page uses.
     const info = {};
@@ -90,7 +121,7 @@ module.exports = async (req, res) => {
 
     agencies.sort((a, b) => a.name.localeCompare(b.name));
     res.setHeader("Cache-Control", "s-maxage=600, stale-while-revalidate=3600");
-    res.status(200).json({ ok: true, source: "airtable", generatedAt: new Date().toISOString(), nape, agencies });
+    res.status(200).json({ ok: true, source: "airtable", generatedAt: new Date().toISOString(), nape, content, agencies });
   } catch (e) {
     console.error("Directory fetch failed:", e);
     res.status(502).json({ ok: false, error: "Could not load the partner directory." });

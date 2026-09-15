@@ -185,6 +185,42 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   await page.reload();
   await page.waitForSelector("#cx-warm .step.done");
   await page.unroute("**/api/agencies");
+
+  // Airtable-edited guidance wins over the built-in defaults: a live API payload with custom
+  // category and role content must show up in the support map, the role pickers, and the drafts
+  await page.route("**/api/agencies", r => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
+    ok: true, source: "airtable",
+    nape: { name: "NAPE", contactName: "Test Secretariat", contactEmail: "sec@example.org", contactPhone: "" },
+    content: {
+      categories: { "Federal Agency": { offers: ["Custom offer from Airtable", "Second custom offer"], wants: ["Custom want from Airtable"], opener: "custom opener from airtable", ask: "custom ask from airtable" } },
+      roles: {
+        mine: [{ role: "Custom Chief Role", offers: ["Custom role offer one", "Custom role offer two"] }],
+        partner: [{ role: "Custom Partner Role", opens: "custom doors from airtable" }]
+      }
+    },
+    agencies: [{ id: "recX", name: "Test Federal Partner", acronym: "TFP", category: "Federal Agency", description: "d", url: "https://example.org" }]
+  }) }));
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForFunction(() => document.querySelectorAll("#cx-partner option").length >= 2);
+  if (!(await page.textContent("#cx-dir-note")).includes("NAPE-edited guidance")) throw new Error("content source note missing");
+  if ((await page.$$("#cx-my-role option")).length !== 2 || (await page.$$("#cx-partner-role option")).length !== 2) throw new Error("role pickers not driven by Airtable content");
+  await page.selectOption("#cx-my-agency", "__other");
+  await page.fill("#cx-my-agency-other", "Example County Probation");
+  await page.selectOption("#cx-my-role", "Custom Chief Role");
+  await page.selectOption("#cx-partner", { label: "Test Federal Partner (TFP)" });
+  await page.selectOption("#cx-partner-role", "Custom Partner Role");
+  await page.click('.goal-card[data-goal="establish"]');
+  await page.click("#cx-build");
+  await page.waitForSelector("#cx-campaign:not([hidden])");
+  const support = await page.textContent("#cx-support");
+  if (!support.includes("Custom offer from Airtable") || !support.includes("Custom want from Airtable") || !support.includes("Custom role offer one"))
+    throw new Error("support map not using Airtable content: " + support.slice(0, 200));
+  if (!(await page.textContent("#cx-brief")).includes("custom doors from airtable")) throw new Error("partner role opens-text not from Airtable");
+  const introDraft = await page.inputValue("#cx-draft-1");
+  if (!introDraft.includes("custom opener from airtable") || !introDraft.includes("custom ask from airtable") || !introDraft.includes("custom role offer one"))
+    throw new Error("draft not using Airtable content: " + introDraft.slice(0, 200));
+  await page.unroute("**/api/agencies");
   await page.evaluate(() => localStorage.clear());
 
   // 4. Disclosure pages render with the prototype banner; clear-data works
