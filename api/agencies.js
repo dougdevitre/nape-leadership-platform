@@ -1,5 +1,6 @@
 // GET /api/agencies — returns the NAPE partner directory (Resource Links + Sponsors)
-// from Airtable for the Connections page. Read-only; no user input is forwarded.
+// plus NAPE's own contact details (NAPE Org Info) from Airtable for the Connections
+// page. Read-only; no user input is forwarded.
 // Env vars on the Vercel project:
 //   AIRTABLE_TOKEN             - Airtable personal access token (needs data.records:read on the directory base)
 //   AIRTABLE_DIRECTORY_BASE_ID - base holding "Resource Links" and "Sponsors" (defaults to appvCa1Ac6c200uyu)
@@ -41,10 +42,22 @@ module.exports = async (req, res) => {
     return;
   }
   try {
-    const [links, sponsors] = await Promise.all([
+    const [links, sponsors, orgInfo] = await Promise.all([
       fetchAll(baseId, token, "Resource Links"),
-      fetchAll(baseId, token, "Sponsors").catch(e => { console.error("Sponsors table unavailable:", e.message); return []; })
+      fetchAll(baseId, token, "Sponsors").catch(e => { console.error("Sponsors table unavailable:", e.message); return []; }),
+      fetchAll(baseId, token, "NAPE Org Info").catch(e => { console.error("NAPE Org Info table unavailable:", e.message); return []; })
     ]);
+
+    // "NAPE Org Info" is a Field/Value list; pick out the contact details the page uses.
+    const info = {};
+    orgInfo.forEach(r => { const k = text(r.fields.Field, 80); if (k) info[k] = text(r.fields.Value, 500); });
+    const nape = {
+      name: info["Organization Name"] || "National Association of Probation Executives (NAPE)",
+      contactName: info["Contact Name"] || "",
+      contactEmail: /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(info["Contact Email"] || "") ? info["Contact Email"] : "",
+      contactPhone: info["Contact Phone"] || "",
+      sourcePage: httpUrl(info["Source Page"])
+    };
 
     const agencies = links.map(r => ({
       id: r.id,
@@ -77,7 +90,7 @@ module.exports = async (req, res) => {
 
     agencies.sort((a, b) => a.name.localeCompare(b.name));
     res.setHeader("Cache-Control", "s-maxage=600, stale-while-revalidate=3600");
-    res.status(200).json({ ok: true, source: "airtable", generatedAt: new Date().toISOString(), agencies });
+    res.status(200).json({ ok: true, source: "airtable", generatedAt: new Date().toISOString(), nape, agencies });
   } catch (e) {
     console.error("Directory fetch failed:", e);
     res.status(502).json({ ok: false, error: "Could not load the partner directory." });
