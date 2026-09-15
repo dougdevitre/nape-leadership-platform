@@ -649,6 +649,7 @@ ${c.sig}` }
       </div>`;
 
     renderGuardrails(c, ctx);
+    renderShare(c, ctx);
     renderWarmIntro(c, ctx);
 
     $("cx-steps").innerHTML = seq.map((s, i) => {
@@ -686,6 +687,113 @@ ${c.sig}` }
       if (label) { const pr = napeProgress(); label.textContent = pr.total ? pr.pct + "% approved" : "Start your plan"; }
     });
     $("cx-print").addEventListener("click", () => window.print());
+  }
+
+  /* ---------- Opt-in progress sharing with NAPE ----------
+     Off by default. When a member turns it on for a campaign, a summary is upserted to NAPE's
+     "Partner Connections" table via /api/connections. The payload is built here so it is
+     easy to audit: no partner contact name, no drafts, no step notes. */
+  const SHARE_STATUSES = ["Active", "Connected", "Paused", "Closed"];
+  const SHARE_CONSENT = "If you turn this on, NAPE receives your name, role, and agency, the partner organization and the kind of role you're reaching, your goal, how many steps you've completed, the status you set, and any outcome note you write. It does not receive your contact's name, your message drafts, or your step notes. NAPE uses this only to understand which partnerships are forming and to support members. You can turn it off at any time: updates stop, and NAPE keeps what was already sent unless you ask the NAPE office to remove it.";
+
+  function sharePayload(c) {
+    const seq = SEQUENCES[c.goal] || [];
+    const doneIdx = c.steps.map((st, i) => st && st.done ? i : -1).filter(i => i >= 0);
+    const profile = NAPE.get(NAPE.KEYS.PROFILE, null) || {};
+    const sh = c.share || {};
+    return {
+      consent: true,
+      campaignId: c.id,
+      name: (c.me || "").slice(0, 200),
+      email: profile.submitted === true && profile.email ? String(profile.email).slice(0, 200) : "",
+      role: c.myRole,
+      agency: c.myAgencyName,
+      partner: c.partner.name,
+      partnerCategory: c.partner.category,
+      partnerId: c.partner.id,
+      partnerRole: c.partnerRole,
+      goal: c.goal,
+      status: SHARE_STATUSES.includes(sh.status) ? sh.status : "Active",
+      stepsDone: doneIdx.length,
+      totalSteps: seq.length,
+      lastStep: doneIdx.length ? seq[doneIdx[doneIdx.length - 1]].title : "",
+      note: (sh.note || "").slice(0, 2000),
+      startDate: c.startDate,
+      website: ""
+    };
+  }
+
+  async function syncShare(c, { silent } = {}) {
+    if (!c.share || !c.share.optIn) return;
+    const status = $("cx-share-status");
+    if (status && !silent) status.textContent = "Sending…";
+    try {
+      const res = await fetch("/api/connections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(sharePayload(c))
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        c.share.lastSentAt = Date.now(); c.share.lastError = "";
+        save(store);
+        if (status) status.textContent = "Sent to NAPE " + napeDate(c.share.lastSentAt) + ".";
+        if (!silent) napeToast("Update sent to NAPE.");
+      } else if (res.status === 503) {
+        c.share.lastError = "Sharing isn't set up on NAPE's side yet — your choice is saved and will send once it is.";
+        save(store);
+        if (status) status.textContent = c.share.lastError;
+      } else {
+        c.share.lastError = (data && data.error) || "Couldn't send — please try again.";
+        save(store);
+        if (status) status.textContent = c.share.lastError;
+        if (silent) napeToast("Couldn't send your progress update to NAPE.");
+      }
+    } catch (e) {
+      c.share.lastError = "Network issue — please try again.";
+      save(store);
+      if (status) status.textContent = c.share.lastError;
+    }
+  }
+
+  function renderShare(c, ctx) {
+    const box = $("cx-share");
+    if (!box) return;
+    const sh = c.share || { optIn: false, status: "Active", note: "" };
+    box.hidden = false;
+    box.innerHTML = `<div class="cx-share${sh.optIn ? " on" : ""}">
+      <label class="share-toggle">
+        <input type="checkbox" id="cx-share-optin"${sh.optIn ? " checked" : ""}>
+        <span><strong>Share this campaign's progress with NAPE</strong><span class="share-sub">Optional. Helps NAPE see which partnerships are forming.</span></span>
+      </label>
+      <p class="share-consent">${esc(SHARE_CONSENT)} See the <a href="/privacy">Privacy Notice</a>.</p>
+      <div class="share-fields" ${sh.optIn ? "" : "hidden"}>
+        <div class="share-row">
+          <label for="cx-share-state">Status</label>
+          <select id="cx-share-state">${SHARE_STATUSES.map(st => `<option${st === (sh.status || "Active") ? " selected" : ""}>${st}</option>`).join("")}</select>
+        </div>
+        <label for="cx-share-note">Outcome note for NAPE (optional)</label>
+        <textarea id="cx-share-note" rows="3" placeholder="What came of it, in a sentence or two. Agency-level only — no names of people under supervision.">${esc(sh.note || "")}</textarea>
+        <div class="share-row">
+          <button class="btn btn-navy btn-small" id="cx-share-send">Send update to NAPE</button>
+          <span class="share-status" id="cx-share-status" role="status">${sh.lastError ? esc(sh.lastError) : (sh.lastSentAt ? "Sent to NAPE " + esc(napeDate(sh.lastSentAt)) + "." : "Not sent yet.")}</span>
+        </div>
+        <p class="dir-note">Steps you mark done are also sent automatically while sharing is on.</p>
+      </div>
+    </div>`;
+    box.querySelector("#cx-share-optin").addEventListener("change", (e) => {
+      c.share = Object.assign({ status: "Active", note: "" }, c.share || {}, { optIn: e.target.checked });
+      save(store);
+      renderShare(c, ctx);
+      if (c.share.optIn) syncShare(c, { silent: false });
+      else napeToast("Sharing turned off. NAPE keeps what was already sent.");
+    });
+    const st = box.querySelector("#cx-share-state");
+    if (st) st.addEventListener("change", () => { c.share.status = st.value; save(store); });
+    const note = box.querySelector("#cx-share-note");
+    if (note) note.addEventListener("input", () => { c.share.note = note.value.slice(0, 2000); save(store); });
+    const send = box.querySelector("#cx-share-send");
+    if (send) send.addEventListener("click", () => syncShare(c, { silent: false }));
   }
 
   /* Guardrails aligned with the NAPE By-Laws (revised Nov 20, 2023). The By-Laws control; this is a
@@ -762,6 +870,7 @@ ${ctx.sig}`;
     });
     box.querySelector("#cx-warm-done").addEventListener("click", () => {
       c.warmDone = !c.warmDone; save(store); renderCampaign();
+      syncShare(c, { silent: true });
     });
     const reset = box.querySelector("#cx-warm-reset");
     if (reset) reset.addEventListener("click", () => { delete c.warmDraft; save(store); renderCampaign(); });
@@ -815,6 +924,7 @@ ${ctx.sig}`;
       persistStep(i, { done: now, doneAt: now ? Date.now() : null });
       renderAll();
       if (now) napeToast("Step marked done.");
+      syncShare(c, { silent: true });
     } else if (b.dataset.reset != null) {
       const i = Number(b.dataset.reset);
       const c = currentCampaign();
@@ -837,7 +947,7 @@ ${ctx.sig}`;
     } else if (b.dataset.del) {
       const c = store.campaigns.find(x => x.id === b.dataset.del);
       if (!c) return;
-      if (!confirm(`Delete the campaign with ${c.partner.name}? This only removes it from this device.`)) return;
+      if (!confirm(`Delete the campaign with ${c.partner.name}? This only removes it from this device${c.share && c.share.optIn ? "; progress already shared with NAPE stays with NAPE" : ""}.`)) return;
       store.campaigns = store.campaigns.filter(x => x.id !== b.dataset.del);
       if (store.openId === b.dataset.del) store.openId = null;
       save(store); renderAll();

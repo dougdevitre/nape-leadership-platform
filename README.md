@@ -21,6 +21,7 @@ terms.html          Terms & Disclaimers (prototype status, no-advice, as-is, gov
 404.html            Not-found page
 api/interest.js     Vercel serverless function → Airtable "Interest" table (upserts on Email)
 api/feedback.js     Serverless function → Airtable "Prototype Feedback" table (site-wide widget)
+api/connections.js  Serverless function → Airtable "Partner Connections" table (opt-in campaign progress; upserts on Campaign ID)
 api/agencies.js     Serverless function ← Airtable "Resource Links", "Sponsors", "NAPE Org Info", "Category Profiles", "Role Profiles" (read-only)
 assets/agencies.json Snapshot of the partner directory, used when /api/agencies is unavailable
 assets/connections.js Partner-connection tool engine (Connect page): directory loading, mutual-support map, campaign sequences
@@ -48,11 +49,11 @@ legal pages and have counsel review the wording.
 | Variable | Value |
 |---|---|
 | `AIRTABLE_TOKEN` | Airtable PAT, scope `data.records:write` on the interest/feedback base and `data.records:read` on the directory base |
-| `AIRTABLE_BASE_ID` | `appOA3q8s6pP2j54H` (Interest + Prototype Feedback tables) |
+| `AIRTABLE_BASE_ID` | `appOA3q8s6pP2j54H` (Interest, Prototype Feedback, Partner Connections tables) |
 | `AIRTABLE_DIRECTORY_BASE_ID` | `appvCa1Ac6c200uyu` (directory + NAPE contact + Connections guidance tables; this is the default if unset) |
 
 No secrets are committed to this repo. Member data (goals, reflections, stage)
-lives in browser localStorage; only interest-form and feedback submissions are sent to Airtable.
+lives in browser localStorage; only interest-form, feedback, and opted-in partner-connection progress submissions are sent to Airtable.
 The Connect page's partner-connection tool reads the partner directory through `/api/agencies` (token stays server-side)
 and falls back to `assets/agencies.json` when the endpoint is not configured.
 
