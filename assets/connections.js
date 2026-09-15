@@ -5,7 +5,10 @@
   const KEY = "nape_connections_v1";
   const SNAPSHOT_URL = "assets/agencies.json";
 
-  /* ---------- Reference content ---------- */
+  /* ---------- Reference content ----------
+     Built-in defaults. When the directory loads, rows from the Airtable
+     "Category Profiles" and "Role Profiles" tables are applied over these
+     (see applyContent), so NAPE staff can edit wording without a code change. */
   const MY_ROLES = [
     "Chief / Director",
     "Deputy Chief / Deputy Director",
@@ -392,6 +395,51 @@ ${c.sig}` }
     ]
   };
 
+  /* ---------- Live editorial content (defaults above, Airtable rows applied over them) ---------- */
+  let myRoles = MY_ROLES.slice();
+  let partnerRoles = PARTNER_ROLES.slice();
+  let categoryProfiles = Object.assign({}, CATEGORY_PROFILES);
+  let roleOffers = Object.assign({}, ROLE_OFFERS);
+  let partnerRoleOpens = Object.assign({}, PARTNER_ROLE_OPENS);
+  let CONTENT_SOURCE = "built-in";
+
+  const strList = (v, max) => Array.isArray(v) ? v.map(x => String(x || "").trim()).filter(Boolean).slice(0, max) : [];
+  const str = (v, max) => (v == null ? "" : String(v)).trim().slice(0, max);
+
+  function applyContent(content) {
+    if (!content || typeof content !== "object") return;
+    let applied = false;
+    const cats = content.categories && typeof content.categories === "object" ? content.categories : {};
+    Object.keys(cats).forEach(name => {
+      const c = cats[name] || {};
+      const base = categoryProfiles[name] || DEFAULT_PROFILE;
+      const offers = strList(c.offers, 8), wants = strList(c.wants, 8);
+      categoryProfiles[str(name, 80)] = {
+        offers: offers.length ? offers : base.offers,
+        wants: wants.length ? wants : base.wants,
+        opener: str(c.opener, 400) || base.opener,
+        ask: str(c.ask, 400) || base.ask
+      };
+      applied = true;
+    });
+    const roles = content.roles && typeof content.roles === "object" ? content.roles : {};
+    const mine = Array.isArray(roles.mine) ? roles.mine.map(r => ({ role: str(r && r.role, 80), offers: strList(r && r.offers, 8) })).filter(r => r.role && r.offers.length >= 2) : [];
+    if (mine.length) {
+      myRoles = mine.map(r => r.role);
+      roleOffers = {};
+      mine.forEach(r => { roleOffers[r.role] = r.offers; });
+      applied = true;
+    }
+    const partner = Array.isArray(roles.partner) ? roles.partner.map(r => ({ role: str(r && r.role, 80), opens: str(r && r.opens, 400) })).filter(r => r.role && r.opens) : [];
+    if (partner.length) {
+      partnerRoles = partner.map(r => r.role);
+      partnerRoleOpens = {};
+      partner.forEach(r => { partnerRoleOpens[r.role] = r.opens; });
+      applied = true;
+    }
+    if (applied) CONTENT_SOURCE = "airtable";
+  }
+
   /* ---------- Storage ---------- */
   function load() {
     const d = NAPE.get(KEY, null);
@@ -442,6 +490,7 @@ ${c.sig}` }
     }
     DIRECTORY = data.agencies.map(normalizeAgency).filter(Boolean)
       .sort((a, b) => a.name.localeCompare(b.name));
+    applyContent(data.content);
     const n = data.nape && typeof data.nape === "object" ? data.nape : {};
     NAPE_INFO = {
       name: String(n.name || "NAPE").slice(0, 120),
@@ -481,8 +530,9 @@ ${c.sig}` }
   /* ---------- Campaign context ---------- */
   function buildContext(c) {
     const partner = c.partner;
-    const profile = CATEGORY_PROFILES[partner.category] || DEFAULT_PROFILE;
-    const myOffers = ROLE_OFFERS[c.myRole] || ROLE_OFFERS["Other probation professional"];
+    const profile = categoryProfiles[partner.category] || DEFAULT_PROFILE;
+    const myOffers = roleOffers[c.myRole] || ROLE_OFFERS[c.myRole] || roleOffers[myRoles[myRoles.length - 1]] || ROLE_OFFERS["Other probation professional"];
+    const opens = partnerRoleOpens[c.partnerRole] || PARTNER_ROLE_OPENS[c.partnerRole] || partnerRoleOpens[partnerRoles[partnerRoles.length - 1]] || PARTNER_ROLE_OPENS["Not sure yet"];
     const me = c.me || "[Your name]";
     const contact = (c.contactName || "").trim() || "[Name]";
     return {
@@ -497,7 +547,7 @@ ${c.sig}` }
       url: partner.url,
       opener: profile.opener,
       ask: profile.ask,
-      opens: PARTNER_ROLE_OPENS[c.partnerRole] || PARTNER_ROLE_OPENS["Not sure yet"],
+      opens,
       myOffers,
       theirOffers: profile.offers,
       theirWants: profile.wants,
@@ -836,17 +886,17 @@ ${ctx.sig}`;
 
   /* ---------- Init ---------- */
   (async function init() {
-    $("cx-my-role").innerHTML = `<option value="">Select your role</option>` + MY_ROLES.map(r => `<option>${esc(r)}</option>`).join("");
-    $("cx-partner-role").innerHTML = `<option value="">Who are you trying to reach?</option>` + PARTNER_ROLES.map(r => `<option>${esc(r)}</option>`).join("");
     $("cx-start").value = todayStr();
     setGoal("establish");
 
     await loadDirectory();
+    $("cx-my-role").innerHTML = `<option value="">Select your role</option>` + myRoles.map(r => `<option>${esc(r)}</option>`).join("");
+    $("cx-partner-role").innerHTML = `<option value="">Who are you trying to reach?</option>` + partnerRoles.map(r => `<option>${esc(r)}</option>`).join("");
     optionGroups($("cx-my-agency"), DIRECTORY, { firstLabel: "Select your agency", otherOption: "My agency isn't listed — I'll type it" });
     optionGroups($("cx-partner"), DIRECTORY, { firstLabel: "Select the partner organization" });
 
     const note = $("cx-dir-note");
-    if (DIR_SOURCE === "live") note.textContent = `${DIRECTORY.length} organizations, loaded live from NAPE's partner directory. Listings are not endorsements by NAPE.`;
+    if (DIR_SOURCE === "live") note.textContent = `${DIRECTORY.length} organizations, loaded live from NAPE's partner directory${CONTENT_SOURCE === "airtable" ? " with NAPE-edited guidance" : ""}. Listings are not endorsements by NAPE.`;
     else if (DIR_SOURCE === "snapshot") note.textContent = `${DIRECTORY.length} organizations from a saved copy of NAPE's partner directory (live directory unavailable). Listings are not endorsements by NAPE.`;
     else note.textContent = "The partner directory couldn't be loaded. Please refresh to try again.";
 
@@ -854,7 +904,7 @@ ${ctx.sig}`;
     const profile = NAPE.get(NAPE.KEYS.PROFILE, null);
     if (profile) {
       if (profile.name) $("cx-name").value = profile.name;
-      if (profile.role && MY_ROLES.includes(profile.role)) $("cx-my-role").value = profile.role;
+      if (profile.role && myRoles.includes(profile.role)) $("cx-my-role").value = profile.role;
       if (profile.agency) {
         const match = DIRECTORY.find(a => a.name.toLowerCase() === String(profile.agency).toLowerCase());
         if (match) { $("cx-my-agency").value = match.id; }
