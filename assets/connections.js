@@ -188,7 +188,7 @@ From our side, we can bring ${c.myOffers[0].toLowerCase()} and ${c.myOffers[1].t
 
 Would you have 20 minutes in the next two weeks? I'm glad to work around your schedule.
 
-Thank you for the work ${c.partnerShort} does.
+Thank you for the work ${c.partnerShort} does.${c.vendorLine}
 
 ${c.sig}` },
       { day: 9, channel: "Email", title: "Follow up with something useful", why: "A second touch that gives before it asks is remembered. Keep it to four lines.",
@@ -268,7 +268,7 @@ Thought you might find this useful: [a result, resource, or lesson from our rece
 
 I'd also welcome 15 minutes to hear what ${c.partnerShort} is focused on now. From our side, ${c.myAgency} can offer ${c.myOffers[0].toLowerCase()}, and I'd like to understand ${c.ask}.
 
-Would sometime in the next two weeks work?
+Would sometime in the next two weeks work?${c.vendorLine}
 
 ${c.sig}` },
       { day: 15, channel: "Call", title: "Catch-up call", why: "Two questions carry the whole conversation: what changed, and what's ahead.",
@@ -333,7 +333,7 @@ We've worked together on [context], and I'd like to make the relationship more d
 
 From our side, ${c.myAgency} can offer ${c.myOffers[0].toLowerCase()} and ${c.myOffers[1].toLowerCase()}. I suspect ${c.partnerShort} could help us with ${c.theirOffers[0].toLowerCase()}.
 
-Would you be open to a 30-minute working session in the next two weeks?
+Would you be open to a 30-minute working session in the next two weeks?${c.vendorLine}
 
 ${c.sig}` },
       { day: 10, channel: "Call", title: "Working session: three questions", why: "Three questions, thirty minutes, one commitment. Keep it that simple.",
@@ -551,7 +551,13 @@ ${c.sig}` }
       myOffers,
       theirOffers: profile.offers,
       theirWants: profile.wants,
-      sig: `${me}\n${c.myRole}, ${c.myAgencyName}`
+      sig: `${me}\n${c.myRole}, ${c.myAgencyName}`,
+      isSponsor: partner.category === "NAPE Event Sponsor",
+      // Vendor safeguard (NAPE By-Laws Art. I §1.C: corporate members hold no vote or Board seat;
+      // sponsorship is support for NAPE events, not an endorsement). Kept out of non-vendor drafts.
+      vendorLine: partner.category === "NAPE Event Sponsor"
+        ? "\n\nTo be clear, this is an exploratory conversation, not a procurement or purchasing commitment. Any pilot or purchase would follow " + c.myAgencyName + "'s procurement and ethics rules, and NAPE's event sponsorship is not an endorsement by NAPE or by our agency."
+        : ""
     };
   }
 
@@ -642,6 +648,7 @@ ${c.sig}` }
         <ul>${ctx.theirWants.map(o => `<li>${esc(o)}</li>`).join("")}</ul>
       </div>`;
 
+    renderGuardrails(c, ctx);
     renderWarmIntro(c, ctx);
 
     $("cx-steps").innerHTML = seq.map((s, i) => {
@@ -681,6 +688,28 @@ ${c.sig}` }
     $("cx-print").addEventListener("click", () => window.print());
   }
 
+  /* Guardrails aligned with the NAPE By-Laws (revised Nov 20, 2023). The By-Laws control; this is a
+     plain-language reminder for members using the tool, not a restatement of them. */
+  function renderGuardrails(c, ctx) {
+    const box = $("cx-guardrails");
+    if (!box) return;
+    const items = [
+      `<li><strong>You write as ${esc(ctx.myAgency)}, not as NAPE.</strong> Only the Board of Directors and the officers it designates speak for the Association (By-Laws Art. IV §1, Art. II §2). Don't imply NAPE endorsement, partnership, or commitments in your outreach.</li>`,
+      `<li><strong>NAPE introductions are a courtesy.</strong> The Executive Director acts as a liaison for constituents (Art. IV §3). An introduction is not an endorsement of you, your agency, or the partner.</li>`,
+      `<li><strong>Keep people out of it.</strong> Share agency-level examples and outcomes; never include names or identifying details of people under supervision.</li>`,
+      `<li><strong>Nothing here changes membership status.</strong> Using this tool or joining the interest list is not a NAPE membership application; membership, dues, and voting rights are governed by the By-Laws (Art. I).</li>`
+    ];
+    if (ctx.isSponsor) {
+      items.unshift(`<li class="guard-vendor"><strong>${esc(ctx.partnerShort)} is an event sponsor, which is a corporate relationship.</strong> Corporate members support NAPE but hold no voting rights and cannot serve on the Board (Art. I §1.C). Sponsorship is not an endorsement. Treat this as exploratory, follow ${esc(ctx.myAgency)}'s procurement and ethics rules before any pilot or purchase, and disclose the contact where your agency's policy requires it.</li>`);
+    }
+    box.hidden = false;
+    box.innerHTML = `<div class="cx-guard${ctx.isSponsor ? " vendor" : ""}">
+      <p class="guard-title">Before you send${ctx.isSponsor ? " — vendor outreach" : ""}</p>
+      <ul>${items.join("")}</ul>
+      <p class="guard-foot">Summarized from the NAPE By-Laws for convenience. The By-Laws control; request the current text from the NAPE office. See also <a href="/terms#governance">Terms &amp; Disclaimers</a>.</p>
+    </div>`;
+  }
+
   /* Optional step 0: ask NAPE's Secretariat for a warm introduction (new connections only). */
   function warmIntroDraft(c, ctx) {
     const who = NAPE_INFO && NAPE_INFO.contactName ? NAPE_INFO.contactName.split(",")[0].trim() : "NAPE Secretariat";
@@ -692,7 +721,7 @@ I'm ${ctx.me}, ${ctx.myRole} at ${ctx.myAgency}, and a participant in NAPE's lea
 
 The reason: ${ctx.opener}. I'd like to explore ${ctx.ask}.
 
-If NAPE has a relationship there, would you be willing to make an introduction, or point me to the best person to contact? A two-line email introduction is plenty; I'll take it from there.
+If NAPE has a relationship there, would you be willing to make an introduction, or point me to the best person to contact? A two-line email introduction is plenty; I'll take it from there. I understand an introduction would be a courtesy, not an endorsement or commitment by NAPE, and that I'm writing on behalf of ${ctx.myAgency} rather than the Association.
 
 Thank you for everything the Secretariat does for the membership.
 

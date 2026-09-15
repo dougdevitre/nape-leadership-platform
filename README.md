@@ -17,7 +17,7 @@ connect.html        Partner-connection tool (directory from Airtable, outreach c
 report.html         Print-ready growth report (browser "Save as PDF"; data stays on device)
 certificate.html    Print-ready certificate (participation / progress / completion, landscape)
 privacy.html        Privacy Notice (local-only data, form data, providers, clear-data button)
-terms.html          Terms & Disclaimers (prototype status, no-advice, as-is)
+terms.html          Terms & Disclaimers (prototype status, no-advice, as-is, governance under the NAPE By-Laws)
 404.html            Not-found page
 api/interest.js     Vercel serverless function → Airtable "Interest" table (upserts on Email)
 api/feedback.js     Serverless function → Airtable "Prototype Feedback" table (site-wide widget)
