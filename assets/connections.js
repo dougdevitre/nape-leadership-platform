@@ -169,7 +169,7 @@
       { day: 0, channel: "Prep", title: "Do your homework", why: "Ten minutes of preparation separates a credible note from a cold one.",
         draft: c => `Before reaching out to ${c.partnerName}:
 • Read their description${c.url ? " and website: " + c.url : ""}.
-• Identify the right person. A ${c.partnerRole} is a good first door — they can open ${c.opens}.
+• ${c.contact === "[Name]" ? "Identify the right person." : "You're reaching " + c.contact + "."} A ${c.partnerRole} is a good first door — they can open ${c.opens}.
 • Note one thing they have done recently that matters to ${c.myAgency}.
 • Look for a shared connection (NAPE members, conference contacts). NAPE's Secretariat can often make a warm introduction.
 • Decide your one small ask: ${c.ask}.
@@ -177,7 +177,7 @@
       { day: 2, channel: "Email", title: "Introduction email", why: "Short, specific, and easy to say yes to. One ask, one reason, one offer.",
         draft: c => `Subject: Introduction from ${c.myAgency}
 
-Hello [Name],
+Hello ${c.contact},
 
 I'm ${c.me}, ${c.myRole} at ${c.myAgency}. I'm reaching out because ${c.opener}.
 
@@ -191,7 +191,7 @@ ${c.sig}` },
       { day: 9, channel: "Email", title: "Follow up with something useful", why: "A second touch that gives before it asks is remembered. Keep it to four lines.",
         draft: c => `Subject: Re: Introduction from ${c.myAgency}
 
-Hello [Name],
+Hello ${c.contact},
 
 Following up on my note from last week. I thought of you when I saw [a report, article, or result relevant to their work] — sharing it in case it's useful.
 
@@ -212,7 +212,7 @@ Notes:
       { day: 17, channel: "Email", title: "Thank-you and one next step", why: "Send within 24 hours. Restate the one commitment so it doesn't evaporate.",
         draft: c => `Subject: Thank you — and next step
 
-Hello [Name],
+Hello ${c.contact},
 
 Thank you for the time yesterday. Two things stayed with me: [insight one] and [insight two].
 
@@ -224,7 +224,7 @@ ${c.sig}` },
       { day: 45, channel: "Check-in", title: "30-day value touch", why: "Relationships fade without a reason to talk. Bring a result, an update, or an invitation.",
         draft: c => `Subject: Quick update from ${c.myAgency}
 
-Hello [Name],
+Hello ${c.contact},
 
 A quick update: [what happened with my commitment, or a result worth sharing].
 
@@ -247,7 +247,7 @@ ${c.sig}` }
       { day: 1, channel: "Email", title: "Reconnect note (no ask)", why: "Acknowledge the gap in one line, share one update, and ask nothing. That's what makes it easy to answer.",
         draft: c => `Subject: Reconnecting — ${c.myAgency}
 
-Hello [Name],
+Hello ${c.contact},
 
 It has been a while since [last project or event], and I've been meaning to reach out. I hope things are going well at ${c.partnerShort}.
 
@@ -259,7 +259,7 @@ ${c.sig}` },
       { day: 8, channel: "Email", title: "Share an update, ask for 15 minutes", why: "Now that the door is open, offer something and make a small, specific ask.",
         draft: c => `Subject: Re: Reconnecting — ${c.myAgency}
 
-Hello [Name],
+Hello ${c.contact},
 
 Thought you might find this useful: [a result, resource, or lesson from our recent work].
 
@@ -282,7 +282,7 @@ Notes:
       { day: 16, channel: "Email", title: "Recap and a rhythm", why: "Name the cadence out loud. A quarterly note is easy to keep and hard to forget.",
         draft: c => `Subject: Good to reconnect
 
-Hello [Name],
+Hello ${c.contact},
 
 Thank you for the time. It was good to catch up on [one or two highlights].
 
@@ -294,7 +294,7 @@ ${c.sig}` },
       { day: 90, channel: "Check-in", title: "Quarterly touch", why: "Keep the promise you made. Bring one update and one question.",
         draft: c => `Subject: Quarterly check-in — ${c.myAgency}
 
-Hello [Name],
+Hello ${c.contact},
 
 Checking in as promised. One update from our side: [result or change].
 
@@ -324,7 +324,7 @@ One small collaboration we could try in 90 days: [idea]` },
       { day: 1, channel: "Email", title: "Propose an exploration conversation", why: "Frame it as a working session about how to support each other, not a request.",
         draft: c => `Subject: How ${c.myAgency} and ${c.partnerShort} can support each other
 
-Hello [Name],
+Hello ${c.contact},
 
 We've worked together on [context], and I'd like to make the relationship more deliberate. Specifically: what can each of us offer the other in our roles, and is there one small thing we could do together in the next 90 days?
 
@@ -352,7 +352,7 @@ Notes:
       { day: 12, channel: "Email", title: "Recap with one small pilot", why: "A pilot with an owner and a date is a partnership. Everything else is a good conversation.",
         draft: c => `Subject: Recap — our 90-day pilot
 
-Hello [Name],
+Hello ${c.contact},
 
 Thank you for the working session. Here's what I heard, so we're aligned:
 
@@ -366,7 +366,7 @@ ${c.sig}` },
       { day: 40, channel: "Email", title: "Pilot progress check", why: "Honest status, including what's stuck. That's what earns trust for the next round.",
         draft: c => `Subject: Pilot progress — ${c.myAgency} × ${c.partnerShort}
 
-Hello [Name],
+Hello ${c.contact},
 
 A quick progress note on our pilot:
 • Done: [what's complete]
@@ -386,7 +386,7 @@ ${c.sig}` },
 5. Rhythm going forward: how often we check in and who initiates.
 
 Thank-you note to send afterward:
-Hello [Name] — thank you for 90 days of real collaboration. [What I valued most.] I'm looking forward to [next commitment].
+Hello ${c.contact} — thank you for 90 days of real collaboration. [What I valued most.] I'm looking forward to [next commitment].
 
 ${c.sig}` }
     ]
@@ -403,6 +403,7 @@ ${c.sig}` }
   /* ---------- Directory ---------- */
   let DIRECTORY = [];
   let DIR_SOURCE = "";
+  let NAPE_INFO = null;
 
   function normalizeAgency(a) {
     if (!a || typeof a !== "object" || !a.name) return null;
@@ -441,6 +442,13 @@ ${c.sig}` }
     }
     DIRECTORY = data.agencies.map(normalizeAgency).filter(Boolean)
       .sort((a, b) => a.name.localeCompare(b.name));
+    const n = data.nape && typeof data.nape === "object" ? data.nape : {};
+    NAPE_INFO = {
+      name: String(n.name || "NAPE").slice(0, 120),
+      contactName: String(n.contactName || "").slice(0, 120),
+      contactEmail: /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(n.contactEmail || "")) ? String(n.contactEmail) : "",
+      contactPhone: String(n.contactPhone || "").slice(0, 40)
+    };
   }
 
   function agencyById(id) { return DIRECTORY.find(a => a.id === id) || null; }
@@ -476,8 +484,10 @@ ${c.sig}` }
     const profile = CATEGORY_PROFILES[partner.category] || DEFAULT_PROFILE;
     const myOffers = ROLE_OFFERS[c.myRole] || ROLE_OFFERS["Other probation professional"];
     const me = c.me || "[Your name]";
+    const contact = (c.contactName || "").trim() || "[Name]";
     return {
       me,
+      contact,
       myAgency: c.myAgencyName,
       myRole: c.myRole,
       partnerName: partner.name,
@@ -548,7 +558,7 @@ ${c.sig}` }
         <div class="cx-pair">${esc(c.myAgencyName)}<span class="arrow">→</span>${esc(p.name)}</div>
         <div class="w-chips" style="margin-top:8px">
           <span class="w-chip">${esc(GOALS[c.goal].name)}</span>
-          <span class="w-chip">${esc(c.myRole)} → ${esc(c.partnerRole)}</span>
+          <span class="w-chip">${esc(c.myRole)} → ${esc(c.contactName ? c.contactName + ", " + c.partnerRole : c.partnerRole)}</span>
           <span class="w-chip">${done} of ${seq.length} steps done</span>
         </div>
       </div>
@@ -581,6 +591,8 @@ ${c.sig}` }
         <h4 style="margin-top:14px">What they tend to value from an agency like yours</h4>
         <ul>${ctx.theirWants.map(o => `<li>${esc(o)}</li>`).join("")}</ul>
       </div>`;
+
+    renderWarmIntro(c, ctx);
 
     $("cx-steps").innerHTML = seq.map((s, i) => {
       const st = c.steps[i] || {};
@@ -617,6 +629,72 @@ ${c.sig}` }
       if (label) { const pr = napeProgress(); label.textContent = pr.total ? pr.pct + "% approved" : "Start your plan"; }
     });
     $("cx-print").addEventListener("click", () => window.print());
+  }
+
+  /* Optional step 0: ask NAPE's Secretariat for a warm introduction (new connections only). */
+  function warmIntroDraft(c, ctx) {
+    const who = NAPE_INFO && NAPE_INFO.contactName ? NAPE_INFO.contactName.split(",")[0].trim() : "NAPE Secretariat";
+    return `Subject: Introduction request — ${ctx.partnerShort}
+
+Hello ${who},
+
+I'm ${ctx.me}, ${ctx.myRole} at ${ctx.myAgency}, and a participant in NAPE's leadership community. I'm hoping to connect with ${ctx.partnerName}${ctx.contact !== "[Name]" ? " (" + ctx.contact + ", " + ctx.partnerRole + ")" : " — ideally a " + ctx.partnerRole}.
+
+The reason: ${ctx.opener}. I'd like to explore ${ctx.ask}.
+
+If NAPE has a relationship there, would you be willing to make an introduction, or point me to the best person to contact? A two-line email introduction is plenty; I'll take it from there.
+
+Thank you for everything the Secretariat does for the membership.
+
+${ctx.sig}`;
+  }
+
+  function renderWarmIntro(c, ctx) {
+    const box = $("cx-warm");
+    if (c.goal !== "establish") { box.hidden = true; box.innerHTML = ""; return; }
+    box.hidden = false;
+    const draft = typeof c.warmDraft === "string" ? c.warmDraft : warmIntroDraft(c, ctx);
+    const email = NAPE_INFO && NAPE_INFO.contactEmail ? NAPE_INFO.contactEmail : "";
+    const subject = draft.split("\n")[0].replace(/^Subject:\s*/, "");
+    const body = draft.split("\n").slice(2).join("\n");
+    const mailto = email ? `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}` : "";
+    box.innerHTML = `<article class="step warm${c.warmDone ? " done" : ""}">
+      <div class="step-when">
+        <div class="day">Before</div>
+        <div class="date">Optional, before day 0</div>
+        <span class="ch-chip ch-prep">Warm intro</span>
+      </div>
+      <div class="step-body">
+        <h4>0. Ask NAPE for a warm introduction${c.warmDone ? ' <span class="ms-status st-approved">Done</span>' : ""}</h4>
+        <p class="step-why">A two-line introduction from someone they already trust beats the best cold email. ${NAPE_INFO && NAPE_INFO.contactName ? "NAPE's contact on file: " + esc(NAPE_INFO.contactName) + (email ? " · " + esc(email) : "") + (NAPE_INFO.contactPhone ? " · " + esc(NAPE_INFO.contactPhone) : "") + "." : ""} Skip this step if you'd rather reach out directly.</p>
+        <label class="sr-only" for="cx-warm-draft">Draft introduction request</label>
+        <textarea id="cx-warm-draft" spellcheck="true">${esc(draft)}</textarea>
+        <div class="step-actions">
+          <button class="btn btn-outline btn-small" id="cx-warm-copy">Copy</button>
+          ${mailto ? `<a class="btn btn-outline btn-small" id="cx-warm-mail" href="${esc(mailto)}">Open in email</a>` : ""}
+          <button class="btn ${c.warmDone ? "btn-outline" : "btn-navy"} btn-small" id="cx-warm-done">${c.warmDone ? "Mark not done" : "Mark done"}</button>
+          ${typeof c.warmDraft === "string" ? '<button class="link-btn" id="cx-warm-reset">Reset draft</button>' : ""}
+        </div>
+      </div>
+    </article>`;
+    box.querySelector("#cx-warm-copy").addEventListener("click", async () => {
+      const ok = await copyText(box.querySelector("#cx-warm-draft").value);
+      napeToast(ok ? "Copied to clipboard." : "Couldn't copy — select the text and copy manually.");
+    });
+    box.querySelector("#cx-warm-done").addEventListener("click", () => {
+      c.warmDone = !c.warmDone; save(store); renderCampaign();
+    });
+    const reset = box.querySelector("#cx-warm-reset");
+    if (reset) reset.addEventListener("click", () => { delete c.warmDraft; save(store); renderCampaign(); });
+    box.querySelector("#cx-warm-draft").addEventListener("input", (e) => {
+      c.warmDraft = e.target.value.slice(0, 8000); save(store);
+      const m = box.querySelector("#cx-warm-mail");
+      if (m) {
+        const subj = c.warmDraft.split("\n")[0].replace(/^Subject:\s*/, "");
+        const bd = c.warmDraft.split("\n").slice(2).join("\n");
+        m.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(bd)}`;
+      }
+    });
   }
 
   function renderAll() { renderSaved(); renderCampaign(); }
@@ -719,6 +797,7 @@ ${c.sig}` }
       : (agencyById(mySel) || {}).name || "";
     const partner = agencyById($("cx-partner").value);
     const partnerRole = $("cx-partner-role").value;
+    const contactName = $("cx-contact").value.trim().slice(0, 120);
     const goal = $("cx-goal").value;
     const startDate = napeValidDateStr($("cx-start").value) ? $("cx-start").value : todayStr();
 
@@ -733,7 +812,7 @@ ${c.sig}` }
       id: napeUid(), createdAt: Date.now(), startDate, goal,
       me, myRole, myAgencyName, myAgencyId: mySel === "__other" ? null : mySel,
       partner: { id: partner.id, name: partner.name, acronym: partner.acronym, category: partner.category, description: partner.description, url: partner.url, notes: partner.notes, sponsorTier: partner.sponsorTier },
-      partnerRole,
+      partnerRole, contactName,
       steps: SEQUENCES[goal].map(() => ({ done: false }))
     };
     store.campaigns.push(c);

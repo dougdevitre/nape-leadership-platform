@@ -146,13 +146,17 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   await page.selectOption("#cx-my-role", "Chief / Director");
   await page.selectOption("#cx-partner", { label: "National Institute of Corrections (NIC)" });
   await page.selectOption("#cx-partner-role", "Program or Training Director");
+  await page.fill("#cx-contact", "Dr. Rivera");
   await page.click('.goal-card[data-goal="support"]');
   await page.click("#cx-build");
   await page.waitForSelector("#cx-campaign:not([hidden])");
-  if ((await page.$$(".step")).length !== 6) throw new Error("campaign did not render 6 steps");
+  if ((await page.$$("#cx-steps .step")).length !== 6) throw new Error("campaign did not render 6 steps");
+  if (!(await page.$("#cx-warm[hidden]"))) throw new Error("warm-intro step should be hidden for the support goal");
   const draft0 = await page.inputValue("#cx-draft-0");
   if (!draft0.includes("Example County Probation") || !draft0.includes("National Institute of Corrections"))
     throw new Error("draft not templated with both agencies: " + draft0.slice(0, 120));
+  const draft1 = await page.inputValue("#cx-draft-1");
+  if (!draft1.includes("Hello Dr. Rivera,") || draft1.includes("[Name]")) throw new Error("contact name not used in greeting");
   await page.click('[data-done="0"]');
   await page.reload();
   await page.waitForSelector("#cx-campaign:not([hidden])");
@@ -161,6 +165,25 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   await page.click("#cx-add-goal");
   const cxGoals = await page.evaluate(() => JSON.parse(localStorage.getItem("nape_goals_v1") || "[]"));
   if (cxGoals.length !== 1 || cxGoals[0].milestones.length !== 6) throw new Error("add-to-growth-plan did not create a 6-milestone goal");
+  // Establish goal shows the warm-intro step with NAPE's contact from the snapshot and a mailto link
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForFunction(() => document.querySelectorAll("#cx-partner option").length > 10);
+  await page.selectOption("#cx-my-agency", "__other");
+  await page.fill("#cx-my-agency-other", "Example County Probation");
+  await page.selectOption("#cx-my-role", "Chief / Director");
+  await page.selectOption("#cx-partner", { label: "National Institute of Corrections (NIC)" });
+  await page.selectOption("#cx-partner-role", "Program or Training Director");
+  await page.click('.goal-card[data-goal="establish"]');
+  await page.click("#cx-build");
+  await page.waitForSelector("#cx-warm:not([hidden]) textarea");
+  const warm = await page.inputValue("#cx-warm-draft");
+  if (!warm.includes("Hello Vanessa Farmer,") || !warm.includes("National Institute of Corrections")) throw new Error("warm intro draft not templated: " + warm.slice(0, 120));
+  const mailHref = await page.getAttribute("#cx-warm-mail", "href");
+  if (!mailHref || !mailHref.startsWith("mailto:vfarmer%40shsu.edu?subject=")) throw new Error("warm intro mailto link missing: " + mailHref);
+  await page.click("#cx-warm-done");
+  await page.reload();
+  await page.waitForSelector("#cx-warm .step.done");
   await page.unroute("**/api/agencies");
   await page.evaluate(() => localStorage.clear());
 

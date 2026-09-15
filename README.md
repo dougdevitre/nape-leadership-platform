@@ -13,7 +13,7 @@ journey.html        Framework explorer + 6-question stage assessment
 growth.html         Goal/milestone tracker (planned → complete → approved), target dates + "Due soon" view, filters, import/export
 reflections.html    Guided journal with stats, filters, edit
 resources.html      Program features + one-tap practice library
-connections.html    Agency-to-agency outreach campaign builder (partner directory from Airtable; campaigns stay on device)
+connections.html    Agency-to-agency outreach campaign builder (partner directory from Airtable; optional NAPE warm-intro step; campaigns stay on device)
 connect.html        Interest form (posts to /api/interest)
 report.html         Print-ready growth report (browser "Save as PDF"; data stays on device)
 certificate.html    Print-ready certificate (participation / progress / completion, landscape)
@@ -22,7 +22,7 @@ terms.html          Terms & Disclaimers (prototype status, no-advice, as-is)
 404.html            Not-found page
 api/interest.js     Vercel serverless function → Airtable "Interest" table (upserts on Email)
 api/feedback.js     Serverless function → Airtable "Prototype Feedback" table (site-wide widget)
-api/agencies.js     Serverless function ← Airtable "Resource Links" + "Sponsors" (read-only partner directory)
+api/agencies.js     Serverless function ← Airtable "Resource Links" + "Sponsors" + "NAPE Org Info" (read-only directory + NAPE contact)
 assets/agencies.json Snapshot of the partner directory, used when /api/agencies is unavailable
 assets/connections.js Connections page engine: directory loading, mutual-support map, campaign sequences
 assets/app.js       Shared storage (localStorage), nav hydration, toast, starter-goal engine
@@ -50,7 +50,7 @@ legal pages and have counsel review the wording.
 |---|---|
 | `AIRTABLE_TOKEN` | Airtable PAT, scope `data.records:write` on the interest/feedback base and `data.records:read` on the directory base |
 | `AIRTABLE_BASE_ID` | `appOA3q8s6pP2j54H` (Interest + Prototype Feedback tables) |
-| `AIRTABLE_DIRECTORY_BASE_ID` | `appvCa1Ac6c200uyu` (Resource Links + Sponsors; this is the default if unset) |
+| `AIRTABLE_DIRECTORY_BASE_ID` | `appvCa1Ac6c200uyu` (Resource Links + Sponsors + NAPE Org Info; this is the default if unset) |
 
 No secrets are committed to this repo. Member data (goals, reflections, stage)
 lives in browser localStorage; only interest-form and feedback submissions are sent to Airtable.
