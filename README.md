@@ -57,6 +57,21 @@ lives in browser localStorage; only interest-form, feedback, and opted-in partne
 The Connect page's partner-connection tool reads the partner directory through `/api/agencies` (token stays server-side)
 and falls back to `assets/agencies.json` when the endpoint is not configured.
 
+## NAPE dashboard for shared partner connections
+
+Opted-in progress reports land in the `Partner Connections` table of the submissions base. A
+published Airtable interface named **Partner Connections** (base `appOA3q8s6pP2j54H`) gives the
+Secretariat a view without opening the grid:
+
+| Page | What it shows |
+|---|---|
+| Overview | Campaigns shared, distinct partners and member agencies, average steps done; charts by status, partner category, and goal; most recent updates. Filter by Status and Goal. |
+| Pipeline | Kanban by Status (Active → Connected → Paused → Closed), cards colored by Goal. |
+| All campaigns | Full grid grouped by partner category, sorted by last update, with a `Contact` link to the member's Interest record for staff to connect by hand. |
+
+Rows appear only when a member turns on sharing for a campaign (see the Privacy Notice). The
+interface reads the table directly, so no code change is needed to adjust it.
+
 ## Editing partner-connection guidance in Airtable
 
 The "how you can support one another" text and the phrases used in message drafts live in two
