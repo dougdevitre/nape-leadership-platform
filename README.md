@@ -13,8 +13,7 @@ journey.html        Framework explorer + 6-question stage assessment
 growth.html         Goal/milestone tracker (planned → complete → approved), target dates + "Due soon" view, filters, import/export
 reflections.html    Guided journal with stats, filters, edit
 resources.html      Program features + one-tap practice library
-connections.html    Agency-to-agency outreach campaign builder (partner directory from Airtable; optional NAPE warm-intro step; campaigns stay on device)
-connect.html        Interest form (posts to /api/interest)
+connect.html        Partner-connection tool (directory from Airtable, outreach campaigns kept on device) + interest form (posts to /api/interest)
 report.html         Print-ready growth report (browser "Save as PDF"; data stays on device)
 certificate.html    Print-ready certificate (participation / progress / completion, landscape)
 privacy.html        Privacy Notice (local-only data, form data, providers, clear-data button)
@@ -24,11 +23,11 @@ api/interest.js     Vercel serverless function → Airtable "Interest" table (up
 api/feedback.js     Serverless function → Airtable "Prototype Feedback" table (site-wide widget)
 api/agencies.js     Serverless function ← Airtable "Resource Links", "Sponsors", "NAPE Org Info", "Category Profiles", "Role Profiles" (read-only)
 assets/agencies.json Snapshot of the partner directory, used when /api/agencies is unavailable
-assets/connections.js Connections page engine: directory loading, mutual-support map, campaign sequences
+assets/connections.js Partner-connection tool engine (Connect page): directory loading, mutual-support map, campaign sequences
 assets/app.js       Shared storage (localStorage), nav hydration, toast, starter-goal engine
 assets/styles.css   Design system (navy/teal/gold, Fraunces + Public Sans)
 assets/favicon.svg  Browser-tab icon
-vercel.json         Clean URLs (/journey, /growth, …) + security headers
+vercel.json         Clean URLs (/journey, /growth, …), /connections → /connect redirect, security headers
 scripts/smoke.js    Headless-browser smoke test (also runs in GitHub Actions CI)
 ```
 
@@ -54,10 +53,10 @@ legal pages and have counsel review the wording.
 
 No secrets are committed to this repo. Member data (goals, reflections, stage)
 lives in browser localStorage; only interest-form and feedback submissions are sent to Airtable.
-The Connections page reads the partner directory through `/api/agencies` (token stays server-side)
+The Connect page's partner-connection tool reads the partner directory through `/api/agencies` (token stays server-side)
 and falls back to `assets/agencies.json` when the endpoint is not configured.
 
-## Editing Connections guidance in Airtable
+## Editing partner-connection guidance in Airtable
 
 The "how you can support one another" text and the phrases used in message drafts live in two
 tables in the directory base and can be edited by NAPE staff without a code change:

@@ -33,7 +33,7 @@ const server = http.createServer((req, res) => {
   }
 }).listen(PORT);
 
-const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connections", "/connect"];
+const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connect"];
 
 (async () => {
   const launchOpts = {};
@@ -132,10 +132,12 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   await page.waitForSelector(".confirm.show");
   if (!(await page.textContent("#f-confirm")).includes("you're on the list")) throw new Error("200 path broken");
 
-  // 3b. Connections: directory falls back to the snapshot when the API is unconfigured,
-  //     a campaign builds from the form, progress persists, and it can join the growth plan
+  // 3b. Connect page carries both the interest form and the partner-connection tool. The tool's
+  //     directory falls back to the snapshot when the API is unconfigured, a campaign builds from
+  //     the form, progress persists, and it can join the growth plan
   await page.route("**/api/agencies", r => r.fulfill({ status: 503, contentType: "application/json", body: '{"ok":false,"error":"not_configured"}' }));
-  await page.goto(`http://localhost:${PORT}/connections`);
+  await page.goto(`http://localhost:${PORT}/connect`);
+  if (!(await page.$("#interest-form")) || !(await page.$("#cx-form"))) throw new Error("connect page missing the interest form or the connection tool");
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.waitForFunction(() => document.querySelectorAll("#cx-partner option").length > 10);
@@ -162,6 +164,9 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   await page.waitForSelector("#cx-campaign:not([hidden])");
   if (!(await page.textContent("#cx-head")).includes("1 of 6 steps done")) throw new Error("campaign progress did not persist");
   if (!(await page.$("#cx-saved:not([hidden]) .cx-item"))) throw new Error("saved campaign list missing");
+  // The campaign builder saved a profile; the interest form must prefill from it, not flag a failed send
+  if ((await page.inputValue("#f-name")) !== "Pat Example") throw new Error("interest form not prefilled from the campaign profile");
+  if ((await page.textContent("#f-note")).includes("didn't reach")) throw new Error("interest form wrongly reports a failed submission");
   await page.click("#cx-add-goal");
   const cxGoals = await page.evaluate(() => JSON.parse(localStorage.getItem("nape_goals_v1") || "[]"));
   if (cxGoals.length !== 1 || cxGoals[0].milestones.length !== 6) throw new Error("add-to-growth-plan did not create a 6-milestone goal");
