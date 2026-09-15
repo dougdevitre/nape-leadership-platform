@@ -16,7 +16,10 @@ jobs:
       - name: Syntax-check JavaScript
         run: |
           node --check api/interest.js
+          node --check api/feedback.js
+          node --check api/agencies.js
           node --check assets/app.js
+          node --check assets/connections.js
       - name: Install Playwright
         run: |
           npm install --no-save playwright@1.56.1

@@ -33,7 +33,7 @@ const server = http.createServer((req, res) => {
   }
 }).listen(PORT);
 
-const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connect"];
+const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connections", "/connect"];
 
 (async () => {
   const launchOpts = {};
@@ -131,6 +131,38 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   await page.click("#f-submit");
   await page.waitForSelector(".confirm.show");
   if (!(await page.textContent("#f-confirm")).includes("you're on the list")) throw new Error("200 path broken");
+
+  // 3b. Connections: directory falls back to the snapshot when the API is unconfigured,
+  //     a campaign builds from the form, progress persists, and it can join the growth plan
+  await page.route("**/api/agencies", r => r.fulfill({ status: 503, contentType: "application/json", body: '{"ok":false,"error":"not_configured"}' }));
+  await page.goto(`http://localhost:${PORT}/connections`);
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await page.waitForFunction(() => document.querySelectorAll("#cx-partner option").length > 10);
+  if (!(await page.textContent("#cx-dir-note")).includes("saved copy")) throw new Error("directory snapshot fallback not used");
+  await page.fill("#cx-name", "Pat Example");
+  await page.selectOption("#cx-my-agency", "__other");
+  await page.fill("#cx-my-agency-other", "Example County Probation");
+  await page.selectOption("#cx-my-role", "Chief / Director");
+  await page.selectOption("#cx-partner", { label: "National Institute of Corrections (NIC)" });
+  await page.selectOption("#cx-partner-role", "Program or Training Director");
+  await page.click('.goal-card[data-goal="support"]');
+  await page.click("#cx-build");
+  await page.waitForSelector("#cx-campaign:not([hidden])");
+  if ((await page.$$(".step")).length !== 6) throw new Error("campaign did not render 6 steps");
+  const draft0 = await page.inputValue("#cx-draft-0");
+  if (!draft0.includes("Example County Probation") || !draft0.includes("National Institute of Corrections"))
+    throw new Error("draft not templated with both agencies: " + draft0.slice(0, 120));
+  await page.click('[data-done="0"]');
+  await page.reload();
+  await page.waitForSelector("#cx-campaign:not([hidden])");
+  if (!(await page.textContent("#cx-head")).includes("1 of 6 steps done")) throw new Error("campaign progress did not persist");
+  if (!(await page.$("#cx-saved:not([hidden]) .cx-item"))) throw new Error("saved campaign list missing");
+  await page.click("#cx-add-goal");
+  const cxGoals = await page.evaluate(() => JSON.parse(localStorage.getItem("nape_goals_v1") || "[]"));
+  if (cxGoals.length !== 1 || cxGoals[0].milestones.length !== 6) throw new Error("add-to-growth-plan did not create a 6-milestone goal");
+  await page.unroute("**/api/agencies");
+  await page.evaluate(() => localStorage.clear());
 
   // 4. Disclosure pages render with the prototype banner; clear-data works
   for (const p of ["/privacy", "/terms"]) {
