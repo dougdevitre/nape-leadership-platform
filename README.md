@@ -14,7 +14,7 @@ growth.html         Goal/milestone tracker (planned → complete → approved), 
 reflections.html    Guided journal with stats, filters, edit
 resources.html      Program features + one-tap practice library
 connect.html        Partner-connection tool (directory from Airtable, outreach campaigns kept on device) + interest form (posts to /api/interest)
-media.html          Media Studio: NotebookLM prompt generator, social post + image generator (canvas PNG), and print-ready PDF one-pagers for any directory listing or the NAPE program itself
+media.html          Media Studio: goal/audience/shared-goal purpose panel (Shared Goals field in Airtable "Category Profiles"), NotebookLM prompt generator, social post + image generator (canvas PNG), print-ready PDF one-pagers, and a per-resource kit checklist; detects saved Connect campaigns and aligns content to them
 report.html         Print-ready growth report (browser "Save as PDF"; data stays on device)
 certificate.html    Print-ready certificate (participation / progress / completion, landscape)
 privacy.html        Privacy Notice (local-only data, form data, providers, clear-data button)

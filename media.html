@@ -69,8 +69,50 @@
           </div>
         </div>
       </div>
+
+      <div id="m-purpose" hidden>
+        <p class="cx-col-label" style="margin-top:8px">Why are you promoting it?</p>
+        <div class="m-purpose-grid">
+          <div class="form-field">
+            <label for="m-goal">Your goal</label>
+            <select id="m-goal">
+              <option value="partner">Start a partnership</option>
+              <option value="campaign">Support an active campaign</option>
+              <option value="thanks">Recognize a supporter</option>
+              <option value="educate">Educate my community</option>
+              <option value="recruit">Invite peers into NAPE's network</option>
+            </select>
+            <p class="dir-note" id="m-campaign-hint" hidden></p>
+          </div>
+          <div class="form-field">
+            <label for="m-audience">Who it's for</label>
+            <select id="m-audience">
+              <option value="peers">Peer executives</option>
+              <option value="funders">County leadership &amp; funders</option>
+              <option value="staff">My staff</option>
+              <option value="public">The public</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="m-shared-goal">Your shared goal <span class="m-opt">(edit freely — this line leads every output)</span></label>
+            <input id="m-shared-goal" type="text" maxlength="160" placeholder="e.g., safer communities through evidence-based supervision">
+          </div>
+        </div>
+      </div>
+
       <div class="cx-brief m-preview" id="m-preview" hidden></div>
       <p class="connect-note">Partner listings come from NAPE's related-links directory and are not endorsements. Review anything you generate before sharing it — you're publishing from your own accounts, not NAPE's.</p>
+    </div>
+
+    <div class="m-kit" id="m-kit" hidden>
+      <div class="m-kit-head">
+        <div>
+          <strong>Your media kit</strong>
+          <span class="m-kit-sub">One message, three channels. Check items off as you publish — progress is saved on this device.</span>
+        </div>
+        <span class="m-kit-progress" id="m-kit-progress" aria-live="polite"></span>
+      </div>
+      <div class="m-kit-items" id="m-kit-items"></div>
     </div>
   </div>
 </section>
@@ -118,7 +160,7 @@
       <div class="grid-2" style="align-items:start">
         <div>
           <h3 class="cx-h3">Text posts</h3>
-          <p class="m-tool-sub">Pick a platform and an angle. Drafts are editable — tune the voice, watch the character count, then copy.</p>
+          <p class="m-tool-sub">Pick a platform — the drafts follow your goal, audience, and shared goal from above. Tune the voice, watch the character count, then copy.</p>
           <div class="filter-row" style="margin-bottom:14px">
             <div class="chips" id="sm-platforms" style="margin-bottom:0">
               <button class="chip active" data-platform="linkedin">LinkedIn</button>
@@ -126,12 +168,6 @@
               <button class="chip" data-platform="facebook">Facebook</button>
               <button class="chip" data-platform="instagram">Instagram</button>
             </div>
-            <select id="sm-angle" aria-label="Post angle">
-              <option value="spotlight">Partner spotlight</option>
-              <option value="resource">Share a practical resource</option>
-              <option value="thanks">Thank a supporter</option>
-              <option value="connect">Invite peers to connect</option>
-            </select>
           </div>
           <div id="sm-posts" aria-live="polite"></div>
         </div>

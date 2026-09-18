@@ -32,14 +32,38 @@
       "Feedback that shapes the program before launch"
     ],
     opener: "NAPE is building an executive leadership experience for the probation field",
-    ask: "how the experience could serve leaders in your agency"
+    ask: "how the experience could serve leaders in your agency",
+    sharedGoal: "strong leaders, stronger organizations, and stronger communities"
   };
   const DEFAULT_PROFILE = {
     offers: ["Expertise and resources in their area of focus", "A partner perspective on shared challenges", "Connections in their network"],
     wants: ["Practitioner insight from a working probation agency", "Honest feedback and real-world examples", "A reliable partner for shared goals"],
     opener: "our missions overlap and I'd like to understand how we could work together",
-    ask: "what a useful partnership with a probation agency looks like from your side"
+    ask: "what a useful partnership with a probation agency looks like from your side",
+    sharedGoal: "safer, stronger communities through effective probation practice"
   };
+
+  /* ---------- Purpose: goal + audience ---------- */
+  const GOALS = {
+    partner: { label: "Start a partnership" },
+    campaign: { label: "Support an active campaign" },
+    thanks: { label: "Recognize a supporter" },
+    educate: { label: "Educate my community" },
+    recruit: { label: "Invite peers into NAPE's network" }
+  };
+  const AUDIENCES = {
+    peers: { label: "peer executives", lens: "what this means for the leaders running probation agencies" },
+    funders: { label: "county leadership and funders", lens: "outcomes, accountability, and careful stewardship of public resources" },
+    staff: { label: "agency staff", lens: "what this offers the people doing the work day to day" },
+    public: { label: "the public", lens: "what this means for community safety and real second chances" }
+  };
+
+  /* Saved Connect campaigns for the selected partner (read-only peek at the Connect page's storage). */
+  function campaignsFor(id) {
+    const d = NAPE.get("nape_connections_v1", null);
+    if (!d || !Array.isArray(d.campaigns)) return [];
+    return d.campaigns.filter(x => x && x.partner && x.partner.id === id);
+  }
 
   /* ---------- Directory ---------- */
   let DIRECTORY = [];
@@ -93,7 +117,8 @@
           offers: Array.isArray(p.offers) && p.offers.length ? p.offers.map(String) : DEFAULT_PROFILE.offers,
           wants: Array.isArray(p.wants) && p.wants.length ? p.wants.map(String) : DEFAULT_PROFILE.wants,
           opener: p.opener ? String(p.opener) : DEFAULT_PROFILE.opener,
-          ask: p.ask ? String(p.ask) : DEFAULT_PROFILE.ask
+          ask: p.ask ? String(p.ask) : DEFAULT_PROFILE.ask,
+          sharedGoal: p.sharedGoal ? String(p.sharedGoal).slice(0, 300) : DEFAULT_PROFILE.sharedGoal
         };
       });
     }
@@ -145,6 +170,7 @@
     const firstSentence = (a.description.match(/^.{10,240}?(?<![A-Z])[.!?](?=\s|$)/) || [a.description.slice(0, 200)])[0].trim();
     return {
       isNape,
+      id: a.id,
       name: a.name,
       short: a.acronym || a.name,
       acronym: a.acronym,
@@ -157,6 +183,10 @@
       wants: profile.wants,
       opener: profile.opener,
       ask: profile.ask,
+      goal: GOALS[$("m-goal").value] ? $("m-goal").value : "partner",
+      audience: AUDIENCES[$("m-audience").value] ? $("m-audience").value : "peers",
+      sharedGoal: $("m-shared-goal").value.trim().slice(0, 160) || profile.sharedGoal || "",
+      campaigns: isNape ? [] : campaignsFor(a.id),
       you: $("m-your-name").value.trim(),
       agency: $("m-your-agency").value.trim()
     };
@@ -265,6 +295,9 @@
     const napeLine = c.isNape
       ? `${NAPE_FULL} (NAPE) is developing this experience for the probation field.`
       : `${c.name} is listed in the partner directory of the ${NAPE_FULL} (NAPE). Listings are not endorsements by NAPE.`;
+    const aud = AUDIENCES[c.audience];
+    const sgBit = c.sharedGoal ? ` Frame everything around the shared goal of ${c.sharedGoal}.` : "";
+    const audBit = ` The audience is ${aud.label} — emphasize ${aud.lens}.`;
 
     const sources = [
       c.url ? `1. ${c.url} — the organization's own website` : `1. Search the web for ${c.name}'s official website and add it`,
@@ -282,8 +315,8 @@
       "Audio Overview prompt",
       "Paste into the Audio Overview customization box for a podcast-style briefing.",
       c.isNape
-        ? `Focus the conversation on the NAPE Executive Leadership Experience: who it serves (probation chiefs, deputy chiefs, and rising leaders), the three stages — Lead Self, Lead Others, and Lead the Organization — and why leadership development matters in community corrections. Explain how a listener can express interest. Keep the tone calm, professional, and practical — no hype. Note that program details are subject to Board approval.`
-        : `Focus the conversation on ${c.name}${c.acronym ? ` (${c.acronym})` : ""} and what it offers probation and community-corrections leaders. Cover: what the organization does, why it matters to a probation agency (for example: ${c.offers.slice(0, 2).join("; ").toLowerCase()}), and how a leader connected through the ${NAPE_FULL} (NAPE) could take a sensible first step — such as ${c.ask}. Keep the tone calm, professional, and practical. Stick to what the sources support, and note that directory listings are not endorsements by NAPE.`
+        ? `Focus the conversation on the NAPE Executive Leadership Experience: who it serves (probation chiefs, deputy chiefs, and rising leaders), the three stages — Lead Self, Lead Others, and Lead the Organization — and why leadership development matters in community corrections.${sgBit}${audBit} Explain how a listener can express interest. Keep the tone calm, professional, and practical — no hype. Note that program details are subject to Board approval.`
+        : `Focus the conversation on ${c.name}${c.acronym ? ` (${c.acronym})` : ""} and what it offers probation and community-corrections leaders. Cover: what the organization does, why it matters to a probation agency (for example: ${c.offers.slice(0, 2).join("; ").toLowerCase()}), and how a leader connected through the ${NAPE_FULL} (NAPE) could take a sensible first step — such as ${c.ask}.${sgBit}${audBit} Keep the tone calm, professional, and practical. Stick to what the sources support, and note that directory listings are not endorsements by NAPE.`
     );
 
     add(
@@ -291,7 +324,7 @@
       "For the notebook chat — produces a prep document you can bring to a meeting.",
       c.isNape
         ? `Using only the sources in this notebook, write a one-page briefing for a probation executive who is deciding whether to join the NAPE Executive Leadership Experience. Include: (1) what the experience is and who it is for, (2) the three stages and what each develops, (3) what participation would ask of them, and (4) three questions they should ask NAPE before committing. Use plain, professional language and label anything uncertain as "to be confirmed."`
-        : `Using only the sources in this notebook, write a one-page briefing for a probation chief preparing for a first conversation with ${c.short}. Include: (1) what ${c.short} does, in two sentences; (2) what it can offer a probation agency (for example: ${c.offers.slice(0, 3).join("; ").toLowerCase()}); (3) what organizations like it tend to value from agencies (for example: ${c.wants.slice(0, 2).join("; ").toLowerCase()}); and (4) three specific questions the chief should ask. Use plain, professional language and flag anything the sources don't support.`
+        : `Using only the sources in this notebook, write a one-page briefing for a probation chief preparing for a first conversation with ${c.short}. Include: (1) what ${c.short} does, in two sentences; (2) what it can offer a probation agency (for example: ${c.offers.slice(0, 3).join("; ").toLowerCase()}); (3) what organizations like it tend to value from agencies (for example: ${c.wants.slice(0, 2).join("; ").toLowerCase()}); (4) where the two sides' goals align${c.sharedGoal ? ` — likely around ${c.sharedGoal}` : ""}; and (5) three specific questions the chief should ask. Use plain, professional language and flag anything the sources don't support.`
     );
 
     add(
@@ -305,7 +338,7 @@
     add(
       "Social content prompt",
       "Asks NotebookLM for source-grounded post drafts you can compare with the Social tab here.",
-      `Draft three short social media posts a probation leader could share about ${c.isNape ? "the NAPE Executive Leadership Experience" : `${c.name} and the value it offers the probation field`}: one for LinkedIn (professional, 3–5 sentences), one under 280 characters for X, and one for Facebook (warm, 2–3 sentences). Ground every claim in the sources, avoid hype, and do not imply endorsement by any organization. Mention the ${NAPE_FULL} (NAPE) as the community connecting probation executives.`
+      `Draft three short social media posts a probation leader could share about ${c.isNape ? "the NAPE Executive Leadership Experience" : `${c.name} and the value it offers the probation field`}: one for LinkedIn (professional, 3–5 sentences), one under 280 characters for X, and one for Facebook (warm, 2–3 sentences). The purpose of the posts is: ${GOALS[c.goal].label.toLowerCase()}. Write for ${aud.label}.${c.sharedGoal ? ` Anchor each post in the shared goal of ${c.sharedGoal}.` : ""} Ground every claim in the sources, avoid hype, and do not imply endorsement by any organization. Mention the ${NAPE_FULL} (NAPE) as the community connecting probation executives.`
     );
   }
 
@@ -324,59 +357,72 @@
     return s.slice(0, 277).replace(/\s+\S*$/, "") + "…";
   }
 
-  function socialPosts(c, platform, angle) {
+  function socialPosts(c, platform) {
     const link = c.url || RELATED_LINKS_URL;
     const dirLine = c.isNape
       ? `Learn more and follow along: ${NAPE_SITE}`
       : `Found in NAPE's partner directory: ${RELATED_LINKS_URL}`;
     const offer1 = (c.offers[0] || "").toLowerCase();
     const offer2 = (c.offers[1] || c.offers[0] || "").toLowerCase();
+    const aud = AUDIENCES[c.audience];
+    const sg = c.sharedGoal;
+    const sgLine = sg ? `Our shared goal: ${sg}.` : "";
+    const nameAcr = `${c.name}${c.acronym ? ` (${c.acronym})` : ""}`;
+    const agency = c.agency || "our agency";
     const posts = [];
 
     if (c.isNape) {
       const base = {
-        spotlight: [
-          `Probation leadership is a discipline of its own — and it deserves its own development path.\n\nThe ${NAPE_FULL} (NAPE) is building the Executive Leadership Experience around three stages: Lead Self, Lead Others, Lead the Organization. Growth plans, guided reflection, peer connection.\n\nIf you lead (or are preparing to lead) a probation agency, this is being built for you. ${dirLine}\n\n${HASHTAGS}`,
-          `What got you promoted won't be what makes you effective as a chief.\n\nNAPE's Executive Leadership Experience is in development to help probation executives make that shift — deliberately, with peers, over time.\n\n${dirLine}\n\n${HASHTAGS}`
+        partner: [
+          `Probation leadership is a discipline of its own — and it deserves its own development path.\n\nThe ${NAPE_FULL} (NAPE) is building the Executive Leadership Experience around three stages: Lead Self, Lead Others, Lead the Organization. ${sgLine}\n\nIf you lead (or are preparing to lead) a probation agency, this is being built for you. ${dirLine}\n\n${HASHTAGS}`,
+          `What got you promoted won't be what makes you effective as a chief.\n\nNAPE's Executive Leadership Experience is in development to help probation executives make that shift — deliberately, with peers, over time. ${sgLine}\n\n${dirLine}\n\n${HASHTAGS}`
         ],
-        resource: [
-          `A resource in progress for the probation field: NAPE's Executive Leadership Experience — a structured path for chiefs, deputies, and rising leaders. Three stages: Lead Self, Lead Others, Lead the Organization.\n\n${dirLine}\n\n${HASHTAGS}`,
-          `Leadership development shouldn't stop when you reach the chief's office — that's where it matters most.\n\nNAPE's Executive Leadership Experience is being built for exactly that moment: growth plans, guided reflection, and a peer network that understands the job.\n\n${dirLine}\n\n${HASHTAGS}`
+        campaign: [
+          `${agency.charAt(0).toUpperCase() + agency.slice(1)} is investing in its leadership bench — and NAPE's Executive Leadership Experience is part of that plan.\n\n${sgLine} For ${aud.label}, this is ${aud.lens}.\n\n${dirLine}\n\n${HASHTAGS}`,
+          `Leadership development is a commitment, not an event.\n\nWe're following NAPE's Executive Leadership Experience as it takes shape, because ${sg || "our field needs prepared leaders"}. More as it develops.\n\n${dirLine}\n\n${HASHTAGS}`
         ],
         thanks: [
-          `Grateful for the community behind the ${NAPE_FULL} — the members, partners, and sponsors making an executive leadership experience for probation possible.\n\n${dirLine}\n\n${HASHTAGS}`,
+          `Grateful for the community behind the ${NAPE_FULL} — the members, partners, and sponsors making an executive leadership experience for probation possible. ${sgLine}\n\n${dirLine}\n\n${HASHTAGS}`,
           `To the probation executives shaping NAPE's Executive Leadership Experience with candid feedback: thank you. This is how a field builds something that lasts.\n\n${dirLine}\n\n${HASHTAGS}`
         ],
-        connect: [
-          `Probation executives: who is in your corner as you grow into bigger leadership?\n\nNAPE is building an Executive Leadership Experience so no chief has to figure it out alone. Join the interest list and help shape it.\n\n${dirLine}\n\n${HASHTAGS}`,
+        educate: [
+          `A resource in progress for the probation field: NAPE's Executive Leadership Experience — a structured path for chiefs, deputies, and rising leaders.\n\n${sgLine} For ${aud.label}, this is ${aud.lens}.\n\n${dirLine}\n\n${HASHTAGS}`,
+          `Leadership development shouldn't stop when you reach the chief's office — that's where it matters most.\n\nNAPE's Executive Leadership Experience is being built for exactly that moment: growth plans, guided reflection, and a peer network that understands the job.\n\n${dirLine}\n\n${HASHTAGS}`
+        ],
+        recruit: [
+          `Probation executives: who is in your corner as you grow into bigger leadership?\n\nNAPE is building an Executive Leadership Experience so no chief has to figure it out alone. ${sgLine} Join the interest list and help shape it.\n\n${dirLine}\n\n${HASHTAGS}`,
           `If you lead a probation agency, your own growth can't be an afterthought.\n\nNAPE is building a peer experience for exactly that. Join the interest list — and bring a colleague who's ready for more.\n\n${dirLine}\n\n${HASHTAGS}`
         ]
       };
-      base[angle].forEach(p => posts.push(p));
+      (base[c.goal] || base.partner).forEach(p => posts.push(p));
     } else {
       const sponsorBit = c.sponsorTier ? ` and a ${c.sponsorTier.toLowerCase()} sponsor of NAPE events` : "";
       const base = {
-        spotlight: [
-          `Partner spotlight: ${c.name}${c.acronym ? ` (${c.acronym})` : ""}.\n\n${c.tagline}\n\nFor probation leaders, that means ${offer1}${offer2 && offer2 !== offer1 ? ` and ${offer2}` : ""}.\n\n${link}\n${dirLine}\n\n${HASHTAGS}`,
-          `Every probation agency is stronger with the right partners. One worth knowing: ${c.name}${c.acronym ? ` (${c.acronym})` : ""} — ${c.tagline.replace(/\.$/, "").toLowerCase()}.\n\nWhat they bring to the field: ${offer1}.\n\n${link}\n${dirLine}\n\n${HASHTAGS}`
+        partner: [
+          `Partner spotlight: ${nameAcr}.\n\n${c.tagline}\n\n${sgLine} For ${aud.label}, that means ${offer1}${offer2 && offer2 !== offer1 ? ` and ${offer2}` : ""}.\n\n${link}\n${dirLine}\n\n${HASHTAGS}`,
+          `Partnerships don't start at conferences — they start with one intentional note.\n\nThis week ours goes to ${nameAcr}${sg ? `, because we're working toward the same thing: ${sg}` : ""}. A first conversation could open the door to ${offer1}.\n\n${dirLine}\n\n${HASHTAGS}`
         ],
-        resource: [
-          `Bookmark this one, probation colleagues: ${c.name}${c.acronym ? ` (${c.acronym})` : ""}.\n\n${c.tagline}\n\nA good starting point if your agency is looking for ${offer1}.\n\n${link}\n${dirLine}\n\n${HASHTAGS}`,
-          `What's one organization more probation leaders should know about? Here's mine this week: ${c.name}${c.acronym ? ` (${c.acronym})` : ""}.\n\n${c.tagline}\n\nWorth ten minutes of your week if your agency could use ${offer1}.\n\n${link}\n${dirLine}\n\n${HASHTAGS}`
+        campaign: [
+          `${agency.charAt(0).toUpperCase() + agency.slice(1)} is building a working relationship with ${nameAcr}${sg ? ` — because we share a goal: ${sg}` : ""}.\n\n${c.tagline}\n\nMore to come as this partnership takes shape.\n\n${link}\n\n${HASHTAGS}`,
+          `Good partnerships are built deliberately, one conversation at a time.\n\nWe're deepening ours with ${c.short}${sg ? `, around a goal we share: ${sg}` : ""}. First on the agenda: ${c.ask}.\n\n${link}\n\n${HASHTAGS}`
         ],
         thanks: [
-          `Appreciation post: ${c.name}${c.acronym ? ` (${c.acronym})` : ""} — a partner to the probation field${sponsorBit}.\n\nOrganizations like this strengthen the work our agencies do every day.\n\n${link}\n\n${HASHTAGS}`,
-          `Partnerships make this field stronger. ${c.name}${c.acronym ? ` (${c.acronym})` : ""} supports the probation community${sponsorBit} — thank you for investing in the people who do this work.\n\n${link}\n\n${HASHTAGS}`
+          `Appreciation post: ${nameAcr} — a partner to the probation field${sponsorBit}.\n\n${sgLine} Organizations like this strengthen the work our agencies do every day.\n\n${link}\n\n${HASHTAGS}`,
+          `Partnerships make this field stronger. ${nameAcr} supports the probation community${sponsorBit} — thank you for investing in the people who do this work${sg ? ` and in ${sg}` : ""}.\n\n${link}\n\n${HASHTAGS}`
         ],
-        connect: [
-          `Probation executives: when did you last talk with ${c.short}?\n\n${c.tagline}\n\nA first conversation could open the door to ${offer1}. NAPE's directory is a good place to start building that bridge.\n\n${dirLine}\n\n${HASHTAGS}`,
-          `Partnerships don't start at conferences — they start with one intentional note.\n\nThis week, consider sending yours to ${c.name}${c.acronym ? ` (${c.acronym})` : ""}. One conversation could open the door to ${offer1}.\n\n${dirLine}\n\n${HASHTAGS}`
+        educate: [
+          `For ${aud.label}: ${nameAcr} is worth knowing.\n\n${c.tagline}\n\n${sgLine} A good starting point if your community could use ${offer1}.\n\n${link}\n${dirLine}\n\n${HASHTAGS}`,
+          `What's one organization more people should know about? Here's mine this week: ${nameAcr}.\n\n${c.tagline}\n\nWorth ten minutes if you care about ${sg || offer1}.\n\n${link}\n${dirLine}\n\n${HASHTAGS}`
+        ],
+        recruit: [
+          `I found ${nameAcr} through NAPE's partner directory — one of many reasons the ${NAPE_FULL} is worth your time if you lead in probation.\n\n${sgLine}\n\n${dirLine}\n\n${HASHTAGS}`,
+          `Probation executives: your next partner may already be one directory away.\n\nNAPE connects agencies with organizations like ${c.short}${sg ? `, all working toward ${sg}` : ""}. Start with the related-links page.\n\n${dirLine}\n\n${HASHTAGS}`
         ]
       };
-      base[angle].forEach(p => posts.push(p));
+      (base[c.goal] || base.partner).forEach(p => posts.push(p));
     }
 
-    return posts.map(p => {
+    return posts.map(p => p.replace(/[ \t]+\n/g, "\n").replace(/ {2,}/g, " ").replace(/\n{3,}/g, "\n\n")).map(p => {
       if (platform === "x") {
         const compact = p.split("\n\n").slice(0, 2).join(" ").replace(/\n/g, " ");
         return fitX(`${compact} ${link} ${c.isNape ? "#Probation #Leadership" : "#Probation #CommunityCorrections"}`);
@@ -393,8 +439,7 @@
     wrap.innerHTML = "";
     if (!c) { wrap.innerHTML = `<p class="empty-note">Choose what to promote at the top of the page first.</p>`; return; }
     const platform = document.querySelector("#sm-platforms .chip.active").dataset.platform;
-    const angle = $("sm-angle").value;
-    socialPosts(c, platform, angle).forEach((p, i) => {
+    socialPosts(c, platform).forEach((p, i) => {
       const card = postCard(`${PLATFORMS[platform]} draft ${i + 1}`, p, PLATFORM_LIMITS[platform]);
       wrap.append(card);
       card._autosize();
@@ -513,10 +558,11 @@
     g.fillText(chipText, pad + 24 * u, y + 10 * u - chipH * 0.2);
     y += chipH + 44 * u;
 
-    // Tagline
+    // Tagline — lead with the shared goal when one is set
     g.fillStyle = T.tag;
     g.font = `400 ${Math.round(32 * u)}px "Public Sans", sans-serif`;
-    const tagLines = wrapLines(g, c.tagline, W - pad * 2).slice(0, tall ? 5 : 3);
+    const tagText = c.sharedGoal ? `A shared goal: ${c.sharedGoal}.` : c.tagline;
+    const tagLines = wrapLines(g, tagText, W - pad * 2).slice(0, tall ? 5 : 3);
     tagLines.forEach(l => { g.fillText(l, pad, y); y += 46 * u; });
 
     // Dashed rule above the footer — echoes the site's journey-road motif
@@ -592,6 +638,9 @@
     const prepared = [c.you, c.agency].filter(Boolean).join(", ");
     const contact = NAPE_INFO || {};
     const contactBits = [contact.contactName, contact.contactEmail, contact.contactPhone].filter(Boolean);
+    const audLabel = AUDIENCES[c.audience].label;
+    const sharedLine = c.sharedGoal
+      ? `<p class="pdf-shared">Working toward <strong>${esc(c.sharedGoal)}</strong> — together.</p>` : "";
 
     if (c.isNape) {
       const stages = (typeof NAPE_STAGES === "object" && NAPE_STAGES) ? NAPE_STAGES : null;
@@ -600,9 +649,10 @@
           <span class="mark">N</span>
           <div style="flex:1">
             <h1>NAPE Executive Leadership Experience</h1>
-            <p>${esc(NAPE_FULL)} · ${esc(today)}</p>
+            <p>${esc(NAPE_FULL)} · ${esc(today)} · Prepared for ${esc(audLabel)}</p>
           </div>
         </div>
+        ${sharedLine}
         <div class="report-sec">
           <h2>Why this exists</h2>
           <p class="pdf-p">${esc(c.description)}</p>
@@ -631,11 +681,12 @@
         <span class="mark">N</span>
         <div style="flex:1">
           <h1>Partner Resource Spotlight</h1>
-          <p>${esc(NAPE_FULL)} · ${esc(today)}</p>
+          <p>${esc(NAPE_FULL)} · ${esc(today)} · Prepared for ${esc(audLabel)}</p>
         </div>
       </div>
       <h2 class="pdf-name">${esc(c.name)}${c.acronym ? ` <span class="acr">(${esc(c.acronym)})</span>` : ""}</h2>
       <p class="pdf-chips"><span class="stage-chip chip-others">${esc(c.category)}</span>${c.sponsorTier ? ` <span class="stage-chip chip-org">${esc(c.sponsorTier)} sponsor of NAPE events</span>` : ""}${c.url ? ` <span class="pdf-url">${esc(c.url)}</span>` : ""}</p>
+      ${sharedLine}
       <div class="report-sec">
         <h2>About</h2>
         <p class="pdf-p">${esc(c.description)}</p>
@@ -652,7 +703,7 @@
       </div>
       <div class="report-sec">
         <h2>A sensible first step</h2>
-        <div class="reflect"><strong>Suggested opener</strong>“I'm reaching out because ${esc(c.opener)}.” Then make one small ask: “I'd value a short conversation about ${esc(c.ask)}.”</div>
+        <div class="reflect"><strong>Suggested opener</strong>“I'm reaching out because ${esc(c.opener)}.” Then make one small ask: “I'd value a short conversation about ${esc(c.ask)}.”${c.goal === "campaign" && c.campaigns.length ? ` <em class="pdf-camp-note">This spotlight supports your active outreach campaign with ${esc(c.short)} — see the Connect page for the full sequence.</em>` : ""}</div>
       </div>
       <div class="report-sec">
         <h2>Connect through NAPE</h2>
@@ -661,6 +712,54 @@
       <p class="pdf-tagline">Strong leaders. Stronger organizations. Stronger communities.</p>
       ${prepared ? `<p class="report-footnote" style="text-align:left">Prepared by ${esc(prepared)}.</p>` : ""}
       <p class="report-footnote">Listing sourced from NAPE's related-links directory. Inclusion is not an endorsement by NAPE. Generated on this device by the NAPE leadership platform prototype.</p>`;
+  }
+
+  /* ---------- Media kit checklist ---------- */
+  const KIT_KEY = "nape_media_kits_v1";
+  const KIT_ITEMS = [
+    { k: "notebook", label: "NotebookLM notebook created", sub: "Sources added, prompts run" },
+    { k: "social", label: "Social post published", sub: "Post and image shared from your account" },
+    { k: "pdf", label: "One-pager shared", sub: "Saved as PDF, sent or handed out" }
+  ];
+
+  function kitProgress(id) {
+    const all = NAPE.get(KIT_KEY, {});
+    const st = (all && typeof all === "object" && all[id]) || {};
+    const done = KIT_ITEMS.filter(i => st[i.k]).length;
+    $("m-kit-progress").textContent = done ? `${done} of ${KIT_ITEMS.length} published` : "";
+    return st;
+  }
+
+  function renderKit(c) {
+    const kit = $("m-kit");
+    if (!c) { kit.hidden = true; return; }
+    kit.hidden = false;
+    const st = kitProgress(c.id);
+    const wrap = $("m-kit-items");
+    wrap.innerHTML = "";
+    KIT_ITEMS.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "m-kit-item" + (st[item.k] ? " done" : "");
+      row.innerHTML = `
+        <label>
+          <input type="checkbox"${st[item.k] ? " checked" : ""}>
+          <span><strong>${esc(item.label)}</strong><span class="m-kit-note">${esc(item.sub)}</span></span>
+        </label>
+        <button class="link-btn" type="button">Open tool →</button>`;
+      row.querySelector("input").addEventListener("change", (e) => {
+        const all = NAPE.get(KIT_KEY, {});
+        const safe = all && typeof all === "object" ? all : {};
+        (safe[c.id] = safe[c.id] || {})[item.k] = e.target.checked;
+        NAPE.set(KIT_KEY, safe);
+        row.classList.toggle("done", e.target.checked);
+        kitProgress(c.id);
+      });
+      row.querySelector("button").addEventListener("click", () => {
+        showTool(item.k);
+        document.getElementById("media-tabs").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      wrap.append(row);
+    });
   }
 
   /* ---------- Tabs & wiring ---------- */
@@ -677,7 +776,9 @@
 
   function refresh() {
     const c = currentCtx();
+    $("m-purpose").hidden = !c;
     renderPreview(c);
+    renderKit(c);
     const nb = $("nb-cards");
     if (!$("tool-notebook").hidden) {
       if (c) buildNotebookPrompts(c);
@@ -693,6 +794,34 @@
     renderPdf(); // always current, so printing works from any tab
   }
 
+  /* When the selection changes: prefill the shared goal from the category profile
+     and detect a saved Connect campaign with this partner. */
+  let lastResourceId = "";
+  function onResourceChange() {
+    const val = $("m-resource").value;
+    if (val && val !== lastResourceId) {
+      lastResourceId = val;
+      const isNape = val === "__nape";
+      const a = isNape ? NAPE_SELF : DIRECTORY.find(x => x.id === val);
+      const profile = isNape ? NAPE_SELF_PROFILE
+        : (a && CATEGORY_CONTENT[a.category]) || DEFAULT_PROFILE;
+      $("m-shared-goal").value = profile.sharedGoal || "";
+
+      const camps = isNape ? [] : campaignsFor(val);
+      const hint = $("m-campaign-hint");
+      if (camps.length) {
+        const goalName = { establish: "Establish", reconnect: "Reconnect", support: "Support one another" }[camps[0].goal] || "";
+        hint.hidden = false;
+        hint.textContent = `You have a saved outreach campaign with this partner${goalName ? ` (${goalName})` : ""} — this content will reinforce it.`;
+        $("m-goal").value = "campaign";
+      } else {
+        hint.hidden = true;
+        if ($("m-goal").value === "campaign") $("m-goal").value = "partner";
+      }
+    }
+    refresh();
+  }
+
   function init() {
     fillResourceSelect();
     $("m-form").classList.remove("loading");
@@ -703,9 +832,16 @@
       if (profile.agency) $("m-your-agency").value = profile.agency;
     }
 
-    $("m-resource").addEventListener("change", refresh);
+    $("m-resource").addEventListener("change", onResourceChange);
     $("m-your-name").addEventListener("change", refresh);
     $("m-your-agency").addEventListener("change", refresh);
+    $("m-goal").addEventListener("change", refresh);
+    $("m-audience").addEventListener("change", refresh);
+    let sgTimer;
+    $("m-shared-goal").addEventListener("input", () => {
+      clearTimeout(sgTimer);
+      sgTimer = setTimeout(refresh, 400);
+    });
 
     document.querySelectorAll("#media-tabs .m-tab").forEach(ch =>
       ch.addEventListener("click", () => showTool(ch.dataset.tool)));
@@ -719,7 +855,6 @@
         ch.classList.add("active");
         renderPosts();
       }));
-    $("sm-angle").addEventListener("change", renderPosts);
     $("sm-size").addEventListener("change", renderImage);
     $("sm-theme").addEventListener("change", renderImage);
     let headlineTimer;

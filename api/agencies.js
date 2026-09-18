@@ -62,7 +62,8 @@ module.exports = async (req, res) => {
         offers: lines(r.fields["What They Offer"], 8),
         wants: lines(r.fields["What They Value"], 8),
         opener: text(r.fields.Opener, 400),
-        ask: text(r.fields["First Ask"], 400)
+        ask: text(r.fields["First Ask"], 400),
+        sharedGoal: text(r.fields["Shared Goals"], 300)
       };
     });
     const bySort = (a, b) => (a.sort - b.sort) || a.role.localeCompare(b.role);
