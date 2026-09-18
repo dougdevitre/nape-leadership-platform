@@ -33,7 +33,7 @@ const server = http.createServer((req, res) => {
   }
 }).listen(PORT);
 
-const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connect"];
+const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connect", "/media"];
 
 (async () => {
   const launchOpts = {};
@@ -52,6 +52,25 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
     if (!(await page.$("nav.site-nav"))) throw new Error(p + ": nav missing");
     if (!(await page.$(".nav-links a.active[aria-current=page]"))) throw new Error(p + ": no active nav link");
   }
+
+  // 1b. Media Studio loads the directory and builds prompts, posts, and the PDF one-pager
+  await page.goto(`http://localhost:${PORT}/media`);
+  await page.waitForFunction(() => document.querySelectorAll("#m-resource optgroup").length > 3);
+  await page.selectOption("#m-resource", "__nape");
+  await page.waitForFunction(() => document.querySelectorAll("#nb-cards .gen-card").length === 5);
+  await page.click('#media-tabs .m-tab[data-tool="social"]');
+  await page.waitForFunction(() => document.querySelectorAll("#sm-posts .gen-card").length >= 1);
+  await page.click('#media-tabs .m-tab[data-tool="pdf"]');
+  const pdfText = await page.$eval("#pdf-doc", el => el.textContent);
+  if (!pdfText.includes("NAPE Executive Leadership Experience")) throw new Error("/media: PDF one-pager did not render");
+
+  // 1c. Media share panel: opt-in reveals fields, submit posts to /api/media and confirms
+  await page.route("**/api/media", r => r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }));
+  if (!(await page.$eval("#m-share-fields", el => el.hidden))) throw new Error("/media: share fields visible before opt-in");
+  await page.check("#m-share-opt");
+  await page.click("#m-share-send");
+  await page.waitForFunction(() => document.getElementById("m-share-status").textContent.includes("Thanks"));
+  await page.unroute("**/api/media");
 
   // 2. Importing a hostile plan file normalizes and renders cleanly
   await page.goto(`http://localhost:${PORT}/growth`);
