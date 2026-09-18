@@ -64,6 +64,14 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   const pdfText = await page.$eval("#pdf-doc", el => el.textContent);
   if (!pdfText.includes("NAPE Executive Leadership Experience")) throw new Error("/media: PDF one-pager did not render");
 
+  // 1c. Media share panel: opt-in reveals fields, submit posts to /api/media and confirms
+  await page.route("**/api/media", r => r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true}' }));
+  if (!(await page.$eval("#m-share-fields", el => el.hidden))) throw new Error("/media: share fields visible before opt-in");
+  await page.check("#m-share-opt");
+  await page.click("#m-share-send");
+  await page.waitForFunction(() => document.getElementById("m-share-status").textContent.includes("Thanks"));
+  await page.unroute("**/api/media");
+
   // 2. Importing a hostile plan file normalizes and renders cleanly
   await page.goto(`http://localhost:${PORT}/growth`);
   await page.evaluate(() => localStorage.clear());

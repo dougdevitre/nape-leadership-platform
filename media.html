@@ -114,6 +114,41 @@
       </div>
       <div class="m-kit-items" id="m-kit-items"></div>
     </div>
+
+    <div class="cx-share m-share" id="m-share" hidden>
+      <label class="share-toggle">
+        <input type="checkbox" id="m-share-opt">
+        <span>
+          <strong>Tell NAPE what you published (optional)</strong>
+          <span class="share-sub">NAPE's team can reshare member spotlights from official channels — one post from you can become reach for the whole network. Off by default; nothing is sent until you select "Share with NAPE."</span>
+        </span>
+      </label>
+      <div class="share-fields" id="m-share-fields" hidden>
+        <div class="share-row">
+          <label for="m-share-channel">What you published</label>
+          <select id="m-share-channel">
+            <option>Social post</option>
+            <option>One-pager</option>
+            <option>NotebookLM</option>
+          </select>
+          <select id="m-share-platform" aria-label="Which platform">
+            <option>LinkedIn</option>
+            <option>X</option>
+            <option>Facebook</option>
+            <option>Instagram</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <label for="m-share-url">Link to your post <span class="m-opt">(optional — this is what NAPE reshares)</span></label>
+        <input id="m-share-url" type="url" placeholder="https://www.linkedin.com/posts/…" style="width:100%">
+        <div style="position:absolute;left:-9999px" aria-hidden="true"><input id="m-share-web" tabindex="-1" autocomplete="off"></div>
+        <p class="share-consent" id="m-share-consent">What's sent: the resource name and category, your goal, audience, and shared-goal line, the channel and link above, and your name and agency as entered at the top of this page. NAPE uses it only to amplify member content and understand what's being shared. See the <a href="/privacy">Privacy Notice</a>.</p>
+        <div class="share-row" style="margin-top:12px">
+          <button class="btn btn-gold btn-small" id="m-share-send" type="button">Share with NAPE</button>
+          <span class="share-status" id="m-share-status" role="status"></span>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 

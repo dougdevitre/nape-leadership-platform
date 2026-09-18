@@ -732,6 +732,7 @@
 
   function renderKit(c) {
     const kit = $("m-kit");
+    $("m-share").hidden = !c;
     if (!c) { kit.hidden = true; return; }
     kit.hidden = false;
     const st = kitProgress(c.id);
@@ -760,6 +761,63 @@
       });
       wrap.append(row);
     });
+  }
+
+  /* ---------- Opt-in share with NAPE ---------- */
+  // Airtable's Audience choices use different casing than the on-page labels.
+  const AUDIENCE_SHARE = { peers: "Peer executives", funders: "County leadership & funders", staff: "My staff", public: "The public" };
+
+  async function sendShare() {
+    const c = currentCtx();
+    const status = $("m-share-status");
+    if (!c) { status.textContent = "Choose what you promoted first."; return; }
+    const btn = $("m-share-send");
+    btn.disabled = true;
+    status.textContent = "Sending…";
+    try {
+      const res = await fetch("/api/media", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resource: c.name,
+          category: c.category,
+          channel: $("m-share-channel").value,
+          platform: $("m-share-platform").value,
+          url: $("m-share-url").value.trim(),
+          goal: GOALS[c.goal].label,
+          audience: AUDIENCE_SHARE[c.audience] || "",
+          sharedGoal: c.sharedGoal,
+          name: c.you,
+          agency: c.agency,
+          website: $("m-share-web").value
+        })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) {
+        status.textContent = "Thanks — NAPE can now amplify this.";
+        napeToast("Shared with NAPE.");
+        $("m-share-url").value = "";
+      } else if (res.status === 503) {
+        status.textContent = "Sharing isn't set up yet — you can email the NAPE office instead.";
+      } else {
+        status.textContent = (data && data.error) || "Couldn't send — please try again.";
+      }
+    } catch (e) {
+      status.textContent = "Network issue — please try again.";
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function initShare() {
+    $("m-share-opt").addEventListener("change", (e) => {
+      $("m-share-fields").hidden = !e.target.checked;
+      $("m-share").classList.toggle("on", e.target.checked);
+    });
+    $("m-share-channel").addEventListener("change", () => {
+      $("m-share-platform").hidden = $("m-share-channel").value !== "Social post";
+    });
+    $("m-share-send").addEventListener("click", sendShare);
   }
 
   /* ---------- Tabs & wiring ---------- */
@@ -870,6 +928,7 @@
       window.print();
     });
 
+    initShare();
     refresh();
   }
 
