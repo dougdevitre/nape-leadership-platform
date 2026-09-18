@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Media — NAPE Leadership</title>
+<meta name="description" content="Turn NAPE's partner directory into share-ready media: Google NotebookLM prompts, social media posts and images, and print-ready PDF one-pagers.">
+<meta name="theme-color" content="#1E2E4F">
+<meta property="og:site_name" content="NAPE Executive Leadership Experience">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Media — NAPE Leadership">
+<meta property="og:description" content="Turn NAPE's partner directory into share-ready media: Google NotebookLM prompts, social media posts and images, and print-ready PDF one-pagers.">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<nav class="site-nav" aria-label="Main">
+  <div class="nav-inner">
+    <a class="nav-brand" href="/"><span class="mark">N</span>NAPE Leadership</a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/journey">Journey</a></li>
+      <li><a href="/growth">Growth Plan</a></li>
+      <li><a href="/reflections">Reflections</a></li>
+      <li><a href="/resources">Resources</a></li>
+      <li><a href="/connect">Connect</a></li>
+      <li><a href="/media" class="active" aria-current="page">Media</a></li>
+      <li><a class="nav-progress" href="/growth"><span class="dot"></span><span data-progress>Start your plan</span></a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="proto-banner no-print" role="note">Prototype preview — for demonstration and feedback only. Program details are subject to change and Board approval. <a href="/terms">Learn more</a></div>
+
+<section class="no-print" style="padding-top:56px;padding-bottom:32px">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="banner-tag">Media Studio</span>
+      <h2>Turn the directory into share-ready media</h2>
+      <p>Pick any organization from NAPE's partner directory — or the NAPE leadership experience itself — and generate Google NotebookLM prompts, social media posts and images, and a print-ready PDF one-pager. Everything is created on this device; nothing you type is uploaded.</p>
+    </div>
+
+    <div class="card cx-form loading" id="m-form" role="form" aria-label="Choose what to promote">
+      <div class="grid-2">
+        <div>
+          <div class="form-field">
+            <label for="m-resource">What are you promoting?</label>
+            <select id="m-resource"><option value="">Loading directory…</option></select>
+            <p class="dir-note" id="m-dir-note" aria-live="polite">Loading NAPE's partner directory…</p>
+          </div>
+        </div>
+        <div>
+          <div class="grid-2" style="gap:14px">
+            <div class="form-field">
+              <label for="m-your-name">Your name <span class="m-opt">(optional)</span></label>
+              <input id="m-your-name" type="text" autocomplete="name" placeholder="Shown on the PDF">
+            </div>
+            <div class="form-field">
+              <label for="m-your-agency">Your agency <span class="m-opt">(optional)</span></label>
+              <input id="m-your-agency" type="text" placeholder="Shown on the PDF">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cx-brief m-preview" id="m-preview" hidden></div>
+      <p class="connect-note">Partner listings come from NAPE's related-links directory and are not endorsements. Review anything you generate before sharing it — you're publishing from your own accounts, not NAPE's.</p>
+    </div>
+  </div>
+</section>
+
+<section class="no-print" style="padding-top:0">
+  <div class="wrap">
+    <div class="chips" id="media-tabs" role="tablist" aria-label="Media tools">
+      <button class="chip active" data-tool="notebook" role="tab" aria-selected="true">NotebookLM prompts</button>
+      <button class="chip" data-tool="social" role="tab" aria-selected="false">Social posts &amp; image</button>
+      <button class="chip" data-tool="pdf" role="tab" aria-selected="false">PDF one-pager</button>
+    </div>
+
+    <!-- Tool 1: NotebookLM -->
+    <div class="tool-panel" id="tool-notebook">
+      <div class="cx-guard" style="margin-bottom:22px">
+        <p class="guard-title">How this works</p>
+        <ul>
+          <li>Open Google NotebookLM, create a notebook, and add the sources from the first card.</li>
+          <li>Paste the other prompts into the notebook chat or the Audio Overview box.</li>
+          <li>NotebookLM answers only from your sources — a good guard against invented claims.</li>
+        </ul>
+        <p class="guard-foot">NotebookLM is a Google product; content you add there is governed by Google's terms, not this platform's.</p>
+      </div>
+      <div style="margin-bottom:20px">
+        <a class="btn btn-navy btn-small" href="https://notebooklm.google.com" target="_blank" rel="noopener">Open Google NotebookLM ↗</a>
+      </div>
+      <div id="nb-cards"></div>
+    </div>
+
+    <!-- Tool 2: Social -->
+    <div class="tool-panel" id="tool-social" hidden>
+      <div class="grid-2" style="align-items:start">
+        <div>
+          <h3 class="cx-h3">Text posts</h3>
+          <div class="filter-row" style="margin-bottom:14px">
+            <div class="chips" id="sm-platforms" style="margin-bottom:0">
+              <button class="chip active" data-platform="linkedin">LinkedIn</button>
+              <button class="chip" data-platform="x">X</button>
+              <button class="chip" data-platform="facebook">Facebook</button>
+              <button class="chip" data-platform="instagram">Instagram</button>
+            </div>
+            <select id="sm-angle" aria-label="Post angle">
+              <option value="spotlight">Partner spotlight</option>
+              <option value="resource">Share a practical resource</option>
+              <option value="thanks">Thank a supporter</option>
+              <option value="connect">Invite peers to connect</option>
+            </select>
+          </div>
+          <div id="sm-posts"></div>
+        </div>
+        <div>
+          <h3 class="cx-h3">Matching image</h3>
+          <div class="form-field">
+            <label for="sm-headline">Headline on the image <span class="m-opt">(optional — defaults to the name)</span></label>
+            <input id="sm-headline" type="text" maxlength="120" placeholder="e.g., A partner worth knowing">
+          </div>
+          <div class="filter-row">
+            <select id="sm-size" aria-label="Image size">
+              <option value="square">Square 1080×1080 — LinkedIn, Instagram, Facebook</option>
+              <option value="landscape">Landscape 1200×627 — LinkedIn, X link cards</option>
+              <option value="story">Story 1080×1920 — Instagram/Facebook stories</option>
+            </select>
+            <button class="btn btn-outline btn-small" id="sm-render" type="button">Refresh preview</button>
+            <button class="btn btn-gold btn-small" id="sm-download" type="button" disabled>Download PNG</button>
+          </div>
+          <canvas id="sm-canvas" class="sm-canvas" width="1080" height="1080" aria-label="Social image preview"></canvas>
+          <p class="dir-note" id="sm-img-note" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tool 3: PDF -->
+    <div class="tool-panel" id="tool-pdf" hidden>
+      <div class="toolbar" style="margin-bottom:14px">
+        <button class="btn btn-gold btn-small" id="pdf-print" type="button">Download as PDF</button>
+        <span class="print-tip">In the print dialog, choose “Save as PDF.” The one-pager below is all that prints.</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0" id="pdf-section" hidden>
+  <div class="wrap">
+    <div class="report-doc" id="pdf-doc">
+      <p class="empty-note" style="border:none">Choose what to promote at the top of the page, and this one-pager will build itself.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="tagline">Strong leaders. Stronger organizations. Stronger communities.</p>
+    <p>NAPE Executive Leadership Experience — coming soon</p>
+    <p class="foot-legal">This is a prototype for demonstration and feedback — not a live NAPE program. Partner listings come from NAPE's related-links directory and are not endorsements. <a href="/privacy">Privacy Notice</a> · <a href="/terms">Terms &amp; Disclaimers</a></p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+<script src="assets/media.js"></script>
+</body>
+</html>

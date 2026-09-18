@@ -14,6 +14,7 @@ growth.html         Goal/milestone tracker (planned → complete → approved), 
 reflections.html    Guided journal with stats, filters, edit
 resources.html      Program features + one-tap practice library
 connect.html        Partner-connection tool (directory from Airtable, outreach campaigns kept on device) + interest form (posts to /api/interest)
+media.html          Media Studio: NotebookLM prompt generator, social post + image generator (canvas PNG), and print-ready PDF one-pagers for any directory listing or the NAPE program itself
 report.html         Print-ready growth report (browser "Save as PDF"; data stays on device)
 certificate.html    Print-ready certificate (participation / progress / completion, landscape)
 privacy.html        Privacy Notice (local-only data, form data, providers, clear-data button)
@@ -25,6 +26,7 @@ api/connections.js  Serverless function → Airtable "Partner Connections" table
 api/agencies.js     Serverless function ← Airtable "Resource Links", "Sponsors", "NAPE Org Info", "Category Profiles", "Role Profiles" (read-only)
 assets/agencies.json Snapshot of the partner directory, used when /api/agencies is unavailable
 assets/connections.js Partner-connection tool engine (Connect page): directory loading, mutual-support map, campaign sequences
+assets/media.js     Media Studio engine (Media page): directory loading, prompt/post generators, canvas image renderer, PDF one-pager builder
 assets/app.js       Shared storage (localStorage), nav hydration, toast, starter-goal engine
 assets/styles.css   Design system (navy/teal/gold, Fraunces + Public Sans)
 assets/favicon.svg  Browser-tab icon
