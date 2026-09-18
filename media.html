@@ -77,10 +77,22 @@
 
 <section class="no-print" style="padding-top:0">
   <div class="wrap">
-    <div class="chips" id="media-tabs" role="tablist" aria-label="Media tools">
-      <button class="chip active" data-tool="notebook" role="tab" aria-selected="true">NotebookLM prompts</button>
-      <button class="chip" data-tool="social" role="tab" aria-selected="false">Social posts &amp; image</button>
-      <button class="chip" data-tool="pdf" role="tab" aria-selected="false">PDF one-pager</button>
+    <div class="m-tabs" id="media-tabs" role="tablist" aria-label="Media tools">
+      <button class="m-tab active" data-tool="notebook" role="tab" aria-selected="true">
+        <span class="m-tab-icon" aria-hidden="true">🎧</span>
+        <span class="m-tab-name">NotebookLM prompts</span>
+        <span class="m-tab-sub">Audio overviews, briefings, and FAQs grounded in real sources</span>
+      </button>
+      <button class="m-tab" data-tool="social" role="tab" aria-selected="false">
+        <span class="m-tab-icon" aria-hidden="true">📣</span>
+        <span class="m-tab-name">Social posts &amp; image</span>
+        <span class="m-tab-sub">Editable drafts plus a branded graphic, sized per platform</span>
+      </button>
+      <button class="m-tab" data-tool="pdf" role="tab" aria-selected="false">
+        <span class="m-tab-icon" aria-hidden="true">📄</span>
+        <span class="m-tab-name">PDF one-pager</span>
+        <span class="m-tab-sub">A print-ready spotlight to hand out or attach</span>
+      </button>
     </div>
 
     <!-- Tool 1: NotebookLM -->
@@ -94,8 +106,9 @@
         </ul>
         <p class="guard-foot">NotebookLM is a Google product; content you add there is governed by Google's terms, not this platform's.</p>
       </div>
-      <div style="margin-bottom:20px">
+      <div class="nb-actions">
         <a class="btn btn-navy btn-small" href="https://notebooklm.google.com" target="_blank" rel="noopener">Open Google NotebookLM ↗</a>
+        <button class="btn btn-outline btn-small" id="nb-copy-all" type="button" hidden>Copy all five prompts</button>
       </div>
       <div id="nb-cards"></div>
     </div>
@@ -105,6 +118,7 @@
       <div class="grid-2" style="align-items:start">
         <div>
           <h3 class="cx-h3">Text posts</h3>
+          <p class="m-tool-sub">Pick a platform and an angle. Drafts are editable — tune the voice, watch the character count, then copy.</p>
           <div class="filter-row" style="margin-bottom:14px">
             <div class="chips" id="sm-platforms" style="margin-bottom:0">
               <button class="chip active" data-platform="linkedin">LinkedIn</button>
@@ -119,10 +133,11 @@
               <option value="connect">Invite peers to connect</option>
             </select>
           </div>
-          <div id="sm-posts"></div>
+          <div id="sm-posts" aria-live="polite"></div>
         </div>
         <div>
           <h3 class="cx-h3">Matching image</h3>
+          <p class="m-tool-sub">A branded graphic in NAPE's palette. Choose a size and theme, adjust the headline, then download or copy.</p>
           <div class="form-field">
             <label for="sm-headline">Headline on the image <span class="m-opt">(optional — defaults to the name)</span></label>
             <input id="sm-headline" type="text" maxlength="120" placeholder="e.g., A partner worth knowing">
@@ -133,17 +148,25 @@
               <option value="landscape">Landscape 1200×627 — LinkedIn, X link cards</option>
               <option value="story">Story 1080×1920 — Instagram/Facebook stories</option>
             </select>
-            <button class="btn btn-outline btn-small" id="sm-render" type="button">Refresh preview</button>
-            <button class="btn btn-gold btn-small" id="sm-download" type="button" disabled>Download PNG</button>
+            <select id="sm-theme" aria-label="Image theme">
+              <option value="navy">Navy theme</option>
+              <option value="teal">Teal theme</option>
+              <option value="paper">Paper theme</option>
+            </select>
           </div>
           <canvas id="sm-canvas" class="sm-canvas" width="1080" height="1080" aria-label="Social image preview"></canvas>
-          <p class="dir-note" id="sm-img-note" aria-live="polite"></p>
+          <div class="filter-row" style="margin-top:12px">
+            <button class="btn btn-gold btn-small" id="sm-download" type="button" disabled>Download PNG</button>
+            <button class="btn btn-outline btn-small" id="sm-copy-img" type="button" disabled>Copy image</button>
+            <span class="dir-note" id="sm-img-note" aria-live="polite" style="margin-top:0"></span>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Tool 3: PDF -->
     <div class="tool-panel" id="tool-pdf" hidden>
+      <p class="m-tool-sub" style="margin-bottom:14px">A one-page spotlight you can attach to an email, bring to a meeting, or hand to your leadership team. It rebuilds automatically from your selection above.</p>
       <div class="toolbar" style="margin-bottom:14px">
         <button class="btn btn-gold btn-small" id="pdf-print" type="button">Download as PDF</button>
         <span class="print-tip">In the print dialog, choose “Save as PDF.” The one-pager below is all that prints.</span>

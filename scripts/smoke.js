@@ -58,9 +58,9 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   await page.waitForFunction(() => document.querySelectorAll("#m-resource optgroup").length > 3);
   await page.selectOption("#m-resource", "__nape");
   await page.waitForFunction(() => document.querySelectorAll("#nb-cards .gen-card").length === 5);
-  await page.click('#media-tabs .chip[data-tool="social"]');
+  await page.click('#media-tabs .m-tab[data-tool="social"]');
   await page.waitForFunction(() => document.querySelectorAll("#sm-posts .gen-card").length >= 1);
-  await page.click('#media-tabs .chip[data-tool="pdf"]');
+  await page.click('#media-tabs .m-tab[data-tool="pdf"]');
   const pdfText = await page.$eval("#pdf-doc", el => el.textContent);
   if (!pdfText.includes("NAPE Executive Leadership Experience")) throw new Error("/media: PDF one-pager did not render");
 

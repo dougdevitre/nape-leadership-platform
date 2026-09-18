@@ -191,25 +191,77 @@
     }
   }
 
-  function genCard(label, why, text, extra) {
+  function copyWithState(btn, text) {
+    copyText(text);
+    if (!btn._label) btn._label = btn.textContent;
+    btn.textContent = "✓ Copied";
+    btn.classList.add("copied");
+    clearTimeout(btn._h);
+    btn._h = setTimeout(() => { btn.textContent = btn._label; btn.classList.remove("copied"); }, 1600);
+  }
+
+  function genCard(label, why, text, opts = {}) {
     const div = document.createElement("div");
     div.className = "gen-card";
     div.innerHTML = `
       <div class="gen-head">
-        <div><p class="gen-label">${esc(label)}</p>${why ? `<p class="gen-why">${esc(why)}</p>` : ""}</div>
+        <div class="gen-title-row">
+          ${opts.num ? `<span class="gen-num" aria-hidden="true">${opts.num}</span>` : ""}
+          <div><p class="gen-label">${esc(label)}</p>${why ? `<p class="gen-why">${esc(why)}</p>` : ""}</div>
+        </div>
         <button class="btn btn-outline btn-small" type="button">Copy</button>
       </div>
       <pre class="gen-text"></pre>
-      ${extra ? `<p class="gen-extra">${extra}</p>` : ""}`;
+      ${opts.extra ? `<p class="gen-extra">${opts.extra}</p>` : ""}`;
     div.querySelector(".gen-text").textContent = text;
-    div.querySelector("button").addEventListener("click", () => copyText(text));
+    const btn = div.querySelector("button");
+    btn.addEventListener("click", () => copyWithState(btn, text));
+    return div;
+  }
+
+  /* Editable draft card (social posts): a textarea with a live character count. */
+  function postCard(label, text, limit) {
+    const div = document.createElement("div");
+    div.className = "gen-card";
+    div.innerHTML = `
+      <div class="gen-head">
+        <div class="gen-title-row"><div><p class="gen-label">${esc(label)}</p></div></div>
+        <button class="btn btn-outline btn-small" type="button">Copy</button>
+      </div>
+      <textarea class="gen-edit" rows="5" aria-label="${esc(label)} — editable draft"></textarea>
+      <p class="gen-extra"><span class="gen-count"></span></p>`;
+    const ta = div.querySelector("textarea");
+    ta.value = text;
+    const count = div.querySelector(".gen-count");
+    const update = () => {
+      const n = ta.value.length;
+      count.textContent = limit
+        ? `${n.toLocaleString()} / ${limit.toLocaleString()} characters${n > limit ? " — over the limit" : ""}`
+        : `${n.toLocaleString()} characters`;
+      count.classList.toggle("sm-over", !!limit && n > limit);
+      ta.style.height = "auto";
+      ta.style.height = (ta.scrollHeight + 2) + "px";
+    };
+    ta.addEventListener("input", update);
+    const btn = div.querySelector("button");
+    btn.addEventListener("click", () => copyWithState(btn, ta.value));
+    div._autosize = update; // call once the card is in the DOM
     return div;
   }
 
   /* ---------- Tool 1: NotebookLM prompts ---------- */
+  let NB_TEXTS = [];
+
   function buildNotebookPrompts(c) {
     const wrap = $("nb-cards");
     wrap.innerHTML = "";
+    NB_TEXTS = [];
+    let step = 0;
+    const add = (label, why, text) => {
+      NB_TEXTS.push(`── ${label} ──\n\n${text}`);
+      wrap.append(genCard(label, why, text, { num: ++step }));
+    };
+    $("nb-copy-all").hidden = false;
     const napeLine = c.isNape
       ? `${NAPE_FULL} (NAPE) is developing this experience for the probation field.`
       : `${c.name} is listed in the partner directory of the ${NAPE_FULL} (NAPE). Listings are not endorsements by NAPE.`;
@@ -220,45 +272,46 @@
       `3. ${NAPE_SITE} — about NAPE and its mission`,
       `4. Paste this text as a source:\n"${c.name}${c.acronym ? ` (${c.acronym})` : ""} — ${c.description} ${napeLine}"`
     ].join("\n");
-    wrap.append(genCard(
-      "Step 1 — Sources to add to your notebook",
+    add(
+      "Sources to add to your notebook",
       "In NotebookLM, create a new notebook and add these sources before running any prompt.",
       sources
-    ));
+    );
 
-    wrap.append(genCard(
+    add(
       "Audio Overview prompt",
       "Paste into the Audio Overview customization box for a podcast-style briefing.",
       c.isNape
         ? `Focus the conversation on the NAPE Executive Leadership Experience: who it serves (probation chiefs, deputy chiefs, and rising leaders), the three stages — Lead Self, Lead Others, and Lead the Organization — and why leadership development matters in community corrections. Explain how a listener can express interest. Keep the tone calm, professional, and practical — no hype. Note that program details are subject to Board approval.`
         : `Focus the conversation on ${c.name}${c.acronym ? ` (${c.acronym})` : ""} and what it offers probation and community-corrections leaders. Cover: what the organization does, why it matters to a probation agency (for example: ${c.offers.slice(0, 2).join("; ").toLowerCase()}), and how a leader connected through the ${NAPE_FULL} (NAPE) could take a sensible first step — such as ${c.ask}. Keep the tone calm, professional, and practical. Stick to what the sources support, and note that directory listings are not endorsements by NAPE.`
-    ));
+    );
 
-    wrap.append(genCard(
+    add(
       "Briefing document prompt",
       "For the notebook chat — produces a prep document you can bring to a meeting.",
       c.isNape
         ? `Using only the sources in this notebook, write a one-page briefing for a probation executive who is deciding whether to join the NAPE Executive Leadership Experience. Include: (1) what the experience is and who it is for, (2) the three stages and what each develops, (3) what participation would ask of them, and (4) three questions they should ask NAPE before committing. Use plain, professional language and label anything uncertain as "to be confirmed."`
         : `Using only the sources in this notebook, write a one-page briefing for a probation chief preparing for a first conversation with ${c.short}. Include: (1) what ${c.short} does, in two sentences; (2) what it can offer a probation agency (for example: ${c.offers.slice(0, 3).join("; ").toLowerCase()}); (3) what organizations like it tend to value from agencies (for example: ${c.wants.slice(0, 2).join("; ").toLowerCase()}); and (4) three specific questions the chief should ask. Use plain, professional language and flag anything the sources don't support.`
-    ));
+    );
 
-    wrap.append(genCard(
+    add(
       "FAQ prompt",
       "Turns the sources into a shareable Q&A for your leadership team.",
       c.isNape
         ? `Create an FAQ (6–8 questions) about the NAPE Executive Leadership Experience for probation professionals who have just heard about it. Answer only from the sources. Include questions about who it's for, what the three stages cover, what it costs or requires (say "not yet announced" if the sources don't say), and how to stay informed.`
         : `Create an FAQ (6–8 questions) about ${c.name} for probation professionals who have never worked with it. Answer only from the sources. Include: what it is, who it serves, how a probation agency typically engages with it, and where to learn more. If a question can't be answered from the sources, say so rather than guessing.`
-    ));
+    );
 
-    wrap.append(genCard(
+    add(
       "Social content prompt",
       "Asks NotebookLM for source-grounded post drafts you can compare with the Social tab here.",
       `Draft three short social media posts a probation leader could share about ${c.isNape ? "the NAPE Executive Leadership Experience" : `${c.name} and the value it offers the probation field`}: one for LinkedIn (professional, 3–5 sentences), one under 280 characters for X, and one for Facebook (warm, 2–3 sentences). Ground every claim in the sources, avoid hype, and do not imply endorsement by any organization. Mention the ${NAPE_FULL} (NAPE) as the community connecting probation executives.`
-    ));
+    );
   }
 
   /* ---------- Tool 2: Social posts ---------- */
   const PLATFORMS = { linkedin: "LinkedIn", x: "X", facebook: "Facebook", instagram: "Instagram" };
+  const PLATFORM_LIMITS = { linkedin: 3000, x: 280, facebook: 0, instagram: 2200 };
   const ANGLES = {
     spotlight: "Partner spotlight",
     resource: "Share a practical resource",
@@ -287,13 +340,16 @@
           `What got you promoted won't be what makes you effective as a chief.\n\nNAPE's Executive Leadership Experience is in development to help probation executives make that shift — deliberately, with peers, over time.\n\n${dirLine}\n\n${HASHTAGS}`
         ],
         resource: [
-          `A resource in progress for the probation field: NAPE's Executive Leadership Experience — a structured path for chiefs, deputies, and rising leaders. Three stages: Lead Self, Lead Others, Lead the Organization.\n\n${dirLine}\n\n${HASHTAGS}`
+          `A resource in progress for the probation field: NAPE's Executive Leadership Experience — a structured path for chiefs, deputies, and rising leaders. Three stages: Lead Self, Lead Others, Lead the Organization.\n\n${dirLine}\n\n${HASHTAGS}`,
+          `Leadership development shouldn't stop when you reach the chief's office — that's where it matters most.\n\nNAPE's Executive Leadership Experience is being built for exactly that moment: growth plans, guided reflection, and a peer network that understands the job.\n\n${dirLine}\n\n${HASHTAGS}`
         ],
         thanks: [
-          `Grateful for the community behind the ${NAPE_FULL} — the members, partners, and sponsors making an executive leadership experience for probation possible.\n\n${dirLine}\n\n${HASHTAGS}`
+          `Grateful for the community behind the ${NAPE_FULL} — the members, partners, and sponsors making an executive leadership experience for probation possible.\n\n${dirLine}\n\n${HASHTAGS}`,
+          `To the probation executives shaping NAPE's Executive Leadership Experience with candid feedback: thank you. This is how a field builds something that lasts.\n\n${dirLine}\n\n${HASHTAGS}`
         ],
         connect: [
-          `Probation executives: who is in your corner as you grow into bigger leadership?\n\nNAPE is building an Executive Leadership Experience so no chief has to figure it out alone. Join the interest list and help shape it.\n\n${dirLine}\n\n${HASHTAGS}`
+          `Probation executives: who is in your corner as you grow into bigger leadership?\n\nNAPE is building an Executive Leadership Experience so no chief has to figure it out alone. Join the interest list and help shape it.\n\n${dirLine}\n\n${HASHTAGS}`,
+          `If you lead a probation agency, your own growth can't be an afterthought.\n\nNAPE is building a peer experience for exactly that. Join the interest list — and bring a colleague who's ready for more.\n\n${dirLine}\n\n${HASHTAGS}`
         ]
       };
       base[angle].forEach(p => posts.push(p));
@@ -305,13 +361,16 @@
           `Every probation agency is stronger with the right partners. One worth knowing: ${c.name}${c.acronym ? ` (${c.acronym})` : ""} — ${c.tagline.replace(/\.$/, "").toLowerCase()}.\n\nWhat they bring to the field: ${offer1}.\n\n${link}\n${dirLine}\n\n${HASHTAGS}`
         ],
         resource: [
-          `Bookmark this one, probation colleagues: ${c.name}${c.acronym ? ` (${c.acronym})` : ""}.\n\n${c.tagline}\n\nA good starting point if your agency is looking for ${offer1}.\n\n${link}\n${dirLine}\n\n${HASHTAGS}`
+          `Bookmark this one, probation colleagues: ${c.name}${c.acronym ? ` (${c.acronym})` : ""}.\n\n${c.tagline}\n\nA good starting point if your agency is looking for ${offer1}.\n\n${link}\n${dirLine}\n\n${HASHTAGS}`,
+          `What's one organization more probation leaders should know about? Here's mine this week: ${c.name}${c.acronym ? ` (${c.acronym})` : ""}.\n\n${c.tagline}\n\nWorth ten minutes of your week if your agency could use ${offer1}.\n\n${link}\n${dirLine}\n\n${HASHTAGS}`
         ],
         thanks: [
-          `Appreciation post: ${c.name}${c.acronym ? ` (${c.acronym})` : ""} — a partner to the probation field${sponsorBit}.\n\nOrganizations like this strengthen the work our agencies do every day.\n\n${link}\n\n${HASHTAGS}`
+          `Appreciation post: ${c.name}${c.acronym ? ` (${c.acronym})` : ""} — a partner to the probation field${sponsorBit}.\n\nOrganizations like this strengthen the work our agencies do every day.\n\n${link}\n\n${HASHTAGS}`,
+          `Partnerships make this field stronger. ${c.name}${c.acronym ? ` (${c.acronym})` : ""} supports the probation community${sponsorBit} — thank you for investing in the people who do this work.\n\n${link}\n\n${HASHTAGS}`
         ],
         connect: [
-          `Probation executives: when did you last talk with ${c.short}?\n\n${c.tagline}\n\nA first conversation could open the door to ${offer1}. NAPE's directory is a good place to start building that bridge.\n\n${dirLine}\n\n${HASHTAGS}`
+          `Probation executives: when did you last talk with ${c.short}?\n\n${c.tagline}\n\nA first conversation could open the door to ${offer1}. NAPE's directory is a good place to start building that bridge.\n\n${dirLine}\n\n${HASHTAGS}`,
+          `Partnerships don't start at conferences — they start with one intentional note.\n\nThis week, consider sending yours to ${c.name}${c.acronym ? ` (${c.acronym})` : ""}. One conversation could open the door to ${offer1}.\n\n${dirLine}\n\n${HASHTAGS}`
         ]
       };
       base[angle].forEach(p => posts.push(p));
@@ -336,11 +395,9 @@
     const platform = document.querySelector("#sm-platforms .chip.active").dataset.platform;
     const angle = $("sm-angle").value;
     socialPosts(c, platform, angle).forEach((p, i) => {
-      const count = p.length;
-      const extra = platform === "x"
-        ? `<span class="${count > 280 ? "sm-over" : ""}">${count}/280 characters</span>`
-        : `${count} characters`;
-      wrap.append(genCard(`${PLATFORMS[platform]} draft ${i + 1}`, "", p, extra));
+      const card = postCard(`${PLATFORMS[platform]} draft ${i + 1}`, p, PLATFORM_LIMITS[platform]);
+      wrap.append(card);
+      card._autosize();
     });
   }
 
@@ -349,6 +406,11 @@
     square: { w: 1080, h: 1080, label: "Square 1080×1080 (LinkedIn, Instagram, Facebook)" },
     landscape: { w: 1200, h: 627, label: "Landscape 1200×627 (LinkedIn, X link cards)" },
     story: { w: 1080, h: 1920, label: "Story 1080×1920 (Instagram/Facebook stories)" }
+  };
+  const IMG_THEMES = {
+    navy: { bg: "#1E2E4F", orb: "#16233D", kicker: "#C9962E", rule: "#C9962E", head: "#FBF9F4", chipBg: "#2E7D6E", chipText: "#FBF9F4", tag: "#CBD4E4", footTitle: "#FBF9F4", footSub: "#8FA0C4", markBg: "#C9962E", markText: "#16233D", dash: "#3D507A" },
+    teal: { bg: "#2E7D6E", orb: "#27695D", kicker: "#F7EDD8", rule: "#C9962E", head: "#FBF9F4", chipBg: "#1E2E4F", chipText: "#FBF9F4", tag: "#DCEDE9", footTitle: "#FBF9F4", footSub: "#BFDCD5", markBg: "#C9962E", markText: "#16233D", dash: "#4E9587" },
+    paper: { bg: "#FBF9F4", orb: "#F1EBDC", kicker: "#9A701C", rule: "#C9962E", head: "#1E2E4F", chipBg: "#2E7D6E", chipText: "#FBF9F4", tag: "#5A6675", footTitle: "#1E2E4F", footSub: "#5A6675", markBg: "#1E2E4F", markText: "#C9962E", dash: "#D8D2C4" }
   };
 
   function wrapLines(g, text, maxWidth) {
@@ -387,32 +449,43 @@
       ]);
     } catch (e) { /* fall back to system fonts */ }
 
-    // Background
-    g.fillStyle = "#1E2E4F";
+    const T = IMG_THEMES[$("sm-theme").value] || IMG_THEMES.navy;
+
+    // Background with a soft corner orb
+    g.fillStyle = T.bg;
     g.fillRect(0, 0, W, H);
-    g.fillStyle = "#16233D";
+    g.fillStyle = T.orb;
     g.beginPath();
-    g.arc(W * 0.92, H * 0.06, W * 0.38, 0, Math.PI * 2);
+    g.arc(W * 0.94, H * 0.04, W * 0.40, 0, Math.PI * 2);
+    g.fill();
+    g.beginPath();
+    g.arc(W * 0.02, H * 1.02, W * 0.22, 0, Math.PI * 2);
     g.fill();
 
     const pad = 84 * u;
     let y = tall ? H * 0.2 : pad + 40 * u;
 
-    // Kicker
+    // Kicker, letterspaced
     const kicker = c.isNape ? "NAPE EXECUTIVE LEADERSHIP" : (c.sponsorTier ? "SPONSOR SPOTLIGHT" : "PARTNER SPOTLIGHT");
-    g.fillStyle = "#C9962E";
+    g.fillStyle = T.kicker;
     g.font = `700 ${Math.round(30 * u)}px "Public Sans", sans-serif`;
     g.textBaseline = "alphabetic";
-    let kx = pad;
-    kicker.split("").forEach(ch => { g.fillText(ch, kx, y); kx += g.measureText(ch).width + 6 * u; });
+    if ("letterSpacing" in g) {
+      g.letterSpacing = `${Math.round(6 * u)}px`;
+      g.fillText(kicker, pad, y);
+      g.letterSpacing = "0px";
+    } else {
+      let kx = pad;
+      kicker.split("").forEach(ch => { g.fillText(ch, kx, y); kx += g.measureText(ch).width + 6 * u; });
+    }
     y += 26 * u;
-    g.fillStyle = "#C9962E";
+    g.fillStyle = T.rule;
     g.fillRect(pad, y, 120 * u, 6 * u);
     y += 90 * u;
 
-    // Headline
+    // Headline, auto-shrunk to fit
     const headline = ($("sm-headline").value.trim() || c.name).slice(0, 120);
-    g.fillStyle = "#FBF9F4";
+    g.fillStyle = T.head;
     let fSize = 84 * u;
     g.font = `700 ${Math.round(fSize)}px Fraunces, Georgia, serif`;
     let lines = wrapLines(g, headline, W - pad * 2);
@@ -425,46 +498,57 @@
     lines.slice(0, maxLines).forEach(l => { g.fillText(l, pad, y); y += fSize * 1.18; });
     y += 8 * u;
 
-    // Category / acronym chip line
+    // Category / acronym chip
     g.font = `600 ${Math.round(28 * u)}px "Public Sans", sans-serif`;
     const chipText = c.isNape ? "Lead Self · Lead Others · Lead the Organization"
       : `${c.category}${c.acronym ? ` · ${c.acronym}` : ""}${c.sponsorTier ? ` · ${c.sponsorTier} sponsor` : ""}`;
-    g.fillStyle = "#2E7D6E";
+    g.fillStyle = T.chipBg;
     const chipW = g.measureText(chipText).width + 48 * u;
     const chipH = 56 * u;
     g.beginPath();
     if (g.roundRect) g.roundRect(pad, y - chipH * 0.7, Math.min(chipW, W - pad * 2), chipH, chipH / 2);
     else g.rect(pad, y - chipH * 0.7, Math.min(chipW, W - pad * 2), chipH);
     g.fill();
-    g.fillStyle = "#FBF9F4";
+    g.fillStyle = T.chipText;
     g.fillText(chipText, pad + 24 * u, y + 10 * u - chipH * 0.2);
     y += chipH + 44 * u;
 
     // Tagline
-    g.fillStyle = "#CBD4E4";
+    g.fillStyle = T.tag;
     g.font = `400 ${Math.round(32 * u)}px "Public Sans", sans-serif`;
     const tagLines = wrapLines(g, c.tagline, W - pad * 2).slice(0, tall ? 5 : 3);
     tagLines.forEach(l => { g.fillText(l, pad, y); y += 46 * u; });
 
-    // Footer
+    // Dashed rule above the footer — echoes the site's journey-road motif
     const fy = H - pad;
-    g.fillStyle = "#C9962E";
+    g.strokeStyle = T.dash;
+    g.lineWidth = 3 * u;
+    g.setLineDash([16 * u, 12 * u]);
+    g.beginPath();
+    g.moveTo(pad, fy - 76 * u);
+    g.lineTo(W - pad, fy - 76 * u);
+    g.stroke();
+    g.setLineDash([]);
+
+    // Footer brandmark
+    g.fillStyle = T.markBg;
     g.beginPath();
     g.arc(pad + 26 * u, fy - 12 * u, 26 * u, 0, Math.PI * 2);
     g.fill();
-    g.fillStyle = "#16233D";
+    g.fillStyle = T.markText;
     g.font = `700 ${Math.round(26 * u)}px "Public Sans", sans-serif`;
     g.textAlign = "center";
     g.fillText("N", pad + 26 * u, fy - 3 * u);
     g.textAlign = "left";
-    g.fillStyle = "#FBF9F4";
+    g.fillStyle = T.footTitle;
     g.font = `600 ${Math.round(26 * u)}px "Public Sans", sans-serif`;
     g.fillText(NAPE_FULL, pad + 66 * u, fy - 18 * u);
-    g.fillStyle = "#8FA0C4";
+    g.fillStyle = T.footSub;
     g.font = `400 ${Math.round(24 * u)}px "Public Sans", sans-serif`;
     g.fillText("napehome.org", pad + 66 * u, fy + 14 * u);
 
     $("sm-download").disabled = false;
+    $("sm-copy-img").disabled = false;
   }
 
   function downloadImage() {
@@ -481,6 +565,18 @@
       a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 4000);
       napeToast("Image downloaded.");
+    }, "image/png");
+  }
+
+  function copyImage() {
+    $("sm-canvas").toBlob(async blob => {
+      if (!blob) { napeToast("Couldn't create the image."); return; }
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        napeToast("Image copied — paste it into your post.");
+      } catch (e) {
+        napeToast("Copying images isn't supported here — use Download PNG instead.");
+      }
     }, "image/png");
   }
 
@@ -522,8 +618,9 @@
         </div>
         <div class="report-sec">
           <h2>Get involved</h2>
-          <p class="pdf-p">Join the interest list on the platform's Connect page to hear first when the experience launches${contactBits.length ? `, or contact ${esc(contactBits.join(" · "))}.` : "."}</p>
+          <div class="reflect"><strong>Next step</strong>Join the interest list on the platform's Connect page to hear first when the experience launches${contactBits.length ? `, or contact ${esc(contactBits.join(" · "))}.` : "."}</div>
         </div>
+        <p class="pdf-tagline">Strong leaders. Stronger organizations. Stronger communities.</p>
         ${prepared ? `<p class="report-footnote" style="text-align:left">Prepared by ${esc(prepared)}.</p>` : ""}
         <p class="report-footnote">Prototype preview — program details are subject to change and NAPE Board approval. ${esc(NAPE_SITE)}</p>`;
       return;
@@ -555,19 +652,20 @@
       </div>
       <div class="report-sec">
         <h2>A sensible first step</h2>
-        <p class="pdf-p">Open with why you're reaching out — for example: <em>"I'm reaching out because ${esc(c.opener)}."</em> Then make one small ask: <em>"I'd value a short conversation about ${esc(c.ask)}."</em></p>
+        <div class="reflect"><strong>Suggested opener</strong>“I'm reaching out because ${esc(c.opener)}.” Then make one small ask: “I'd value a short conversation about ${esc(c.ask)}.”</div>
       </div>
       <div class="report-sec">
         <h2>Connect through NAPE</h2>
         <p class="pdf-p">${esc(c.name)} appears in NAPE's partner directory (${esc(RELATED_LINKS_URL)}). NAPE members can often get a warm introduction${contactBits.length ? ` — contact ${esc(contactBits.join(" · "))}.` : "."}</p>
       </div>
+      <p class="pdf-tagline">Strong leaders. Stronger organizations. Stronger communities.</p>
       ${prepared ? `<p class="report-footnote" style="text-align:left">Prepared by ${esc(prepared)}.</p>` : ""}
       <p class="report-footnote">Listing sourced from NAPE's related-links directory. Inclusion is not an endorsement by NAPE. Generated on this device by the NAPE leadership platform prototype.</p>`;
   }
 
   /* ---------- Tabs & wiring ---------- */
   function showTool(tool) {
-    document.querySelectorAll("#media-tabs .chip").forEach(ch => {
+    document.querySelectorAll("#media-tabs .m-tab").forEach(ch => {
       const on = ch.dataset.tool === tool;
       ch.classList.toggle("active", on);
       ch.setAttribute("aria-selected", String(on));
@@ -583,7 +681,10 @@
     const nb = $("nb-cards");
     if (!$("tool-notebook").hidden) {
       if (c) buildNotebookPrompts(c);
-      else nb.innerHTML = `<p class="empty-note">Choose what to promote at the top of the page, and copy-ready prompts will appear here.</p>`;
+      else {
+        nb.innerHTML = `<p class="empty-note">Choose what to promote at the top of the page, and copy-ready prompts will appear here.</p>`;
+        $("nb-copy-all").hidden = true;
+      }
     }
     if (!$("tool-social").hidden) {
       renderPosts();
@@ -606,8 +707,11 @@
     $("m-your-name").addEventListener("change", refresh);
     $("m-your-agency").addEventListener("change", refresh);
 
-    document.querySelectorAll("#media-tabs .chip").forEach(ch =>
+    document.querySelectorAll("#media-tabs .m-tab").forEach(ch =>
       ch.addEventListener("click", () => showTool(ch.dataset.tool)));
+
+    $("nb-copy-all").addEventListener("click", (e) =>
+      copyWithState(e.currentTarget, NB_TEXTS.join("\n\n\n")));
 
     document.querySelectorAll("#sm-platforms .chip").forEach(ch =>
       ch.addEventListener("click", () => {
@@ -617,9 +721,14 @@
       }));
     $("sm-angle").addEventListener("change", renderPosts);
     $("sm-size").addEventListener("change", renderImage);
-    $("sm-headline").addEventListener("change", renderImage);
-    $("sm-render").addEventListener("click", renderImage);
+    $("sm-theme").addEventListener("change", renderImage);
+    let headlineTimer;
+    $("sm-headline").addEventListener("input", () => {
+      clearTimeout(headlineTimer);
+      headlineTimer = setTimeout(renderImage, 350);
+    });
     $("sm-download").addEventListener("click", downloadImage);
+    $("sm-copy-img").addEventListener("click", copyImage);
 
     $("pdf-print").addEventListener("click", () => {
       renderPdf();
