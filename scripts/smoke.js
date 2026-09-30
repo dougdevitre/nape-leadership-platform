@@ -36,7 +36,7 @@ const server = http.createServer((req, res) => {
 // Mirrors PRICING in assets/proposal.js (illustrative values); keep in sync when prices change.
 const PRICING_CHECK = { partner: 2750, invite: 4000 };
 
-const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connect", "/media", "/proposal"];
+const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connect", "/media"];
 
 (async () => {
   const launchOpts = {};
