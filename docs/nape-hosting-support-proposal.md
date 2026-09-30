@@ -3,7 +3,7 @@
 **Status:** DRAFT for leadership review. Bracketed items `[ ]` are placeholders to fill in before sending.
 **Prepared for:** NAPE leadership team
 **Prepared by:** Doug Devitre · dougdevitre@gmail.com · 314.496.5973 · linkedin.com/in/dougdevitre
-**Date:** [date]
+**Date:** September 30, 2026
 
 ---
 
@@ -97,7 +97,7 @@ Fill the fee rows from the pricing worksheet in §8. Pass-through vendor costs a
 | Clerk membership gating (initial build) | One-time setup fee | One-time setup fee | One-time setup fee |
 | Ongoing gating/access maintenance | Included | Included | Included |
 | Bug fixes | Included | Included | Included (priority) |
-| Enhancement/change allowance | 0 hrs (quoted separately) | [ ] hrs/month | [ ] hrs/month |
+| Enhancement/change allowance | None included ($150/hr) | 4 hrs/month | 8 hrs/month |
 | Administrator support channel | Email, 2 business days | Email, 1 business day | Email + phone, same business day for urgent |
 | Office hours | On request | Monthly | Twice monthly |
 | Admin training and runbook | Initial session | Initial + annual refresher | Initial + semiannual |
@@ -116,10 +116,10 @@ Fill the fee rows from the pricing worksheet in §8. Pass-through vendor costs a
 |---|---|---|---|
 | Commitment | Lowest | Moderate | Highest |
 | Price protection | Reviewed at renewal | Rate held for term | Rate held for term |
-| Term discount | None | [ ]% | [ ]% |
+| Term discount | None | 5% off service | 10% off service |
 | Payment | Annual or quarterly | Annual or quarterly | Annual or quarterly |
 | Best when | NAPE wants to test membership gating first | Board approves a two-cycle budget | NAPE wants stability across leadership transitions |
-| Exit | Non-renewal with 90 days' notice | Termination for convenience with [ ] days' notice and prorated handoff fee | Same as 2-year |
+| Exit | Non-renewal with 90 days' notice | Termination for convenience with 60 days' notice and prorated handoff fee | Same as 2-year |
 | Included transition | Handoff package | Handoff package | Handoff package |
 
 **Handoff package (all terms):** repository and documentation transfer, credential rotation, runbook, one knowledge-transfer session, so NAPE is never locked in.
@@ -148,14 +148,14 @@ Timeline is an estimate; it depends on how quickly NAPE decides §4 and reviews 
 
 | Line | Basis | Amount |
 |---|---|---|
-| One-time gating build | [ ] hrs × [ ] rate | $[ ] |
-| One-time compliance/legal-text updates | [ ] hrs × [ ] rate | $[ ] |
-| Package A monthly service fee | [ ] | $[ ] |
-| Package B monthly service fee | [ ] | $[ ] |
-| Package C monthly service fee | [ ] | $[ ] |
-| Enhancement hour rate outside allowance | [ ] | $[ ] /hr |
+| One-time gating build | by access model | $4,000 invited / $7,500 roster / $14,000 dues-linked |
+| One-time compliance/legal-text updates | fixed | $2,500 (plus $6,000 progress sync, $1,500 workshop, $1,200 launch kit as add-ons) |
+| Package A monthly service fee | 1-year rate | $750 |
+| Package B monthly service fee | 1-year rate | $1,500 |
+| Package C monthly service fee | 1-year rate | $2,750 |
+| Enhancement hour rate outside allowance | hourly | $150 /hr |
 | Vendor pass-through (Vercel, Clerk, Airtable, domain) | at cost + [ ]% handling, or billed directly to NAPE | $[ ] |
-| 2-year / 3-year discount | | [ ]% / [ ]% |
+| 2-year / 3-year discount | on service fee only | 5% / 10% |
 
 Recommendation: have NAPE own the Clerk, Vercel, Airtable, and domain accounts directly, with us as an admin. This keeps NAPE in control of member data and makes exit clean.
 
