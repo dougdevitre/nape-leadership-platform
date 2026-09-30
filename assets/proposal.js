@@ -61,7 +61,8 @@ const PRICING = {
 
 (function () {
   const PKG_KEYS = Object.keys(PRICING.packages);
-  const STORE_KEY = "nape_proposal_v1";
+  const STORE_KEY = NAPE.KEYS.PROPOSAL;
+  const DOC_KEY = NAPE.KEYS.PROPOSAL_DOC;
   const DEFAULTS = { pkg: "standard", term: 2, gate: "roster", addons: ["legal"], hours: 0, budget: 0 };
 
   const $ = (id) => document.getElementById(id);
@@ -269,6 +270,7 @@ const PRICING = {
     $("pr-mailto").href = "mailto:" + PRICING.contactEmail +
       "?subject=" + encodeURIComponent("NAPE Leadership Platform: my support plan") +
       "&body=" + encodeURIComponent(summaryText(c) + "\n");
+    if ($("pr-mailto2")) $("pr-mailto2").href = $("pr-mailto").href;
     return c;
   }
 
@@ -279,8 +281,153 @@ const PRICING = {
     renderFeatures();
     $("pr-hours-out").textContent = String(state.hours);
     NAPE.set(STORE_KEY, state);
+    renderDoc(c);
     try { history.replaceState(null, "", "#" + toHash(state)); } catch (e) { /* ignore */ }
     return c;
+  }
+
+/* ---------- Final PDF document (built from the selections; saved via the browser's print dialog) ---------- */
+  function sanitizeDoc(raw) {
+    const d = { who: "", notes: "", features: true, compare: true };
+    if (!raw || typeof raw !== "object") return d;
+    if (typeof raw.who === "string") d.who = raw.who.slice(0, 120);
+    if (typeof raw.notes === "string") d.notes = raw.notes.slice(0, 1500);
+    if (typeof raw.features === "boolean") d.features = raw.features;
+    if (typeof raw.compare === "boolean") d.compare = raw.compare;
+    return d;
+  }
+  let docState = sanitizeDoc(NAPE.get(DOC_KEY, null));
+
+  const docDate = () => new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const para = (t) => esc(t).replace(/\n/g, "<br>");
+
+  function considerations(c) {
+    const out = [];
+    if (!state.addons.includes("legal")) {
+      out.push("Your plan does not include the Privacy Notice and Terms update. A members-only sign-in changes what the site collects, so NAPE's counsel should review the current wording before launch.");
+    }
+    if (state.addons.includes("sync")) {
+      out.push("Keeping progress in member accounts means goals and reflections are stored on a server. This needs privacy and legal review and clear consent language.");
+    }
+    if (state.gate === "dues") {
+      out.push("Dues-linked access depends on NAPE's membership system. Kickoff should confirm what data it can share and how often.");
+    }
+    if (state.budget > 0 && c.annualAvg > state.budget) {
+      out.push(`This plan averages ${money(c.annualAvg)} per year, which is ${money(c.annualAvg - state.budget)} over your ${money(state.budget)} budget.`);
+    }
+    return out;
+  }
+
+  function decisionRows() {
+    const g = PRICING.gating[state.gate];
+    const memberSource = state.gate === "dues"
+      ? ["NAPE's membership system, synced automatically", "Chosen"]
+      : state.gate === "roster"
+        ? ["A NAPE roster or email list; NAPE supplies and updates it", "Confirm at kickoff"]
+        : ["Set by your administrator in the login system", "Chosen"];
+    return [
+      ["How people become members", g.name, "Chosen"],
+      ["Where membership status lives", memberSource[0], memberSource[1]],
+      ["Where progress is kept", state.addons.includes("sync") ? "In member accounts (privacy and legal review needed)" : "On each member's device, as today", "Chosen"],
+      ["Who administers access", "To be named, with a backup", "Decide at kickoff"],
+      ["Existing users", "Keep current contacts or require re-registration", "Decide at kickoff"]
+    ];
+  }
+
+  function renderDoc(c) {
+    const el = $("pr-doc");
+    if (!el) return;
+    const g = PRICING.gating[state.gate];
+    const addons = state.addons.map((a) => PRICING.addons[a]);
+    const who = docState.who.trim();
+    const row = (a, b, cls) => `<tr${cls ? ` class="${cls}"` : ""}><td>${a}</td><td class="amt">${b}</td></tr>`;
+
+    const cost = [];
+    cost.push(row(`${esc(c.pkg.name)} package, ${money(c.listMonthly)} per month`, `${money(c.listMonthly)}/mo`));
+    if (c.term.discount) cost.push(row(`Term discount (${Math.round(c.term.discount * 100)}% for ${esc(c.term.label)})`, `−${money(c.listMonthly - c.packageMonthly)}/mo`));
+    if (state.hours) cost.push(row(`Extra enhancement hours (${state.hours} × ${money(PRICING.extraHourRate)})`, `${money(c.extraMonthly)}/mo`));
+    cost.push(row("<b>Monthly service</b>", `<b>${money(c.monthly)}/mo</b>`, "sub"));
+    cost.push(row("Service per year (12 months)", money(c.monthly * 12)));
+    cost.push(row(`Member access build: ${esc(g.name)}`, money(g.fee)));
+    addons.forEach((a) => cost.push(row(esc(a.name), money(a.fee))));
+    cost.push(row("<b>One-time total</b>", `<b>${money(c.oneTime)}</b>`, "sub"));
+    cost.push(row("First-year cost", money(c.firstYear)));
+    cost.push(row(`<b>Total over ${esc(c.term.label)}</b>`, `<b>${money(c.termTotal)}</b>`, "total"));
+    cost.push(row("Average per year, one-time costs spread across the term", money(c.annualAvg)));
+
+    const feat = PRICING.features.map((r) => {
+      const idx = PKG_KEYS.indexOf(state.pkg);
+      return `<tr><td>${esc(r[0])}</td><td>${esc(featureValue(r, idx, state.pkg))}${r[0] === "Change / enhancement allowance" && state.hours ? ` + ${state.hours} extra` : ""}</td></tr>`;
+    }).join("");
+
+    const matrix = () => {
+      const head = `<tr><th></th>${PRICING.terms.map((t) => `<th>${esc(t.label)}</th>`).join("")}</tr>`;
+      const rows = PKG_KEYS.map((k) => `<tr><th scope="row">${esc(PRICING.packages[k].name)}</th>${PRICING.terms.map((t) => {
+        const x = compute(state, k, t.years);
+        const sel = k === state.pkg && t.years === state.term;
+        return `<td class="${sel ? "sel" : ""}">${money(x.annualAvg)}/yr${sel ? " <b>(your plan)</b>" : ""}</td>`;
+      }).join("")}</tr>`).join("");
+      return `<table class="pd-table pd-matrix">${head}${rows}</table>
+        <p class="pd-small">Average cost per year for each package and term, using your access model and add-ons, with one-time costs spread across the term.</p>`;
+    };
+
+    const notes = considerations(c);
+    el.innerHTML = `
+      <header class="pd-head">
+        <div class="pd-kick">NAPE Executive Leadership Experience</div>
+        <h2>Support plan</h2>
+        <div class="pd-meta">
+          <div><b>Prepared for</b>${who ? esc(who) : "NAPE leadership team"}</div>
+          <div><b>Date</b>${esc(docDate())}</div>
+          <div><b>Prepared with</b>Doug Devitre<br>${esc(PRICING.contactEmail)}<br>314.496.5973<br>linkedin.com/in/dougdevitre</div>
+        </div>
+      </header>
+
+      <section class="pd-sec"><h3>Your selections</h3>
+        <table class="pd-table pd-kv">
+          <tr><th scope="row">Package</th><td><b>${esc(c.pkg.name)}</b>. ${esc(c.pkg.tagline)}</td></tr>
+          <tr><th scope="row">Term</th><td>${esc(c.term.label)}${c.term.discount ? `, ${Math.round(c.term.discount * 100)}% off the service fee` : ""}. ${esc(c.term.note)}</td></tr>
+          <tr><th scope="row">Member access</th><td><b>${esc(g.name)}</b>. ${esc(g.desc)}</td></tr>
+          <tr><th scope="row">Add-ons</th><td>${addons.length ? addons.map((a) => `<b>${esc(a.name)}</b>. ${esc(a.desc)}`).join("<br>") : "None selected."}</td></tr>
+          <tr><th scope="row">Extra hours</th><td>${state.hours ? `${state.hours} per month, beyond the ${c.pkg.hours ? c.pkg.hours + " included" : "none included"}` : "None"}</td></tr>
+          <tr><th scope="row">Budget</th><td>${state.budget ? `${money(state.budget)} per year` : "Not set"}</td></tr>
+        </table>
+      </section>
+
+      <section class="pd-sec keep"><h3>Cost</h3>
+        <table class="pd-table pd-cost">${cost.join("")}</table>
+        <p class="pd-small">Clerk, Vercel, and Airtable subscriptions are billed by those vendors and are not included.${PRICING.illustrative ? " Figures are estimates for planning and are confirmed in the statement of work." : " Figures are confirmed in the statement of work."}</p>
+      </section>
+
+      ${docState.features ? `<section class="pd-sec"><h3>What your ${esc(c.pkg.name)} package covers</h3>
+        <table class="pd-table pd-kv">${feat}</table>
+        <p class="pd-small">At the end of the term you receive a handoff package: repository and documentation, credential rotation, a runbook, and a knowledge-transfer session.</p></section>` : ""}
+
+      ${docState.compare ? `<section class="pd-sec keep"><h3>How your plan compares</h3>${matrix()}</section>` : ""}
+
+      <section class="pd-sec keep"><h3>Your choices and open decisions</h3>
+        <table class="pd-table pd-dec"><tr><th>Decision</th><th>Your choice</th><th>Status</th></tr>
+          ${decisionRows().map((r) => `<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td class="${r[2] === "Chosen" ? "ok" : "todo"}">${esc(r[2])}</td></tr>`).join("")}
+        </table>
+      </section>
+
+      ${notes.length ? `<section class="pd-sec keep"><h3>Things to consider</h3><ul class="pd-list">${notes.map((n) => `<li>${esc(n)}</li>`).join("")}</ul></section>` : ""}
+
+      ${docState.notes.trim() ? `<section class="pd-sec"><h3>Notes and questions</h3><p class="pd-notes">${para(docState.notes.trim())}</p></section>` : ""}
+
+      <section class="pd-sec keep"><h3>Next steps</h3>
+        <ol class="pd-list">
+          <li>Send this PDF to Doug Devitre at ${esc(PRICING.contactEmail)}.</li>
+          <li>Schedule a 45-minute kickoff call to settle the open decisions above.</li>
+          <li>Receive a final quote and statement of work reflecting these choices.</li>
+          <li>Sign and begin the members-only login build.</li>
+        </ol>
+      </section>
+
+      <div class="pd-foot">
+        <p>This plan is a planning document, not legal advice. Privacy, membership terms, and the handling of member reflections should be reviewed by NAPE's counsel.</p>
+        <p>Reopen this exact plan: <span class="pd-url">${esc(location.origin + location.pathname + "#" + toHash(state))}</span></p>
+      </div>`;
   }
 
   /* ---------- Events ---------- */
@@ -335,7 +482,34 @@ const PRICING = {
     });
     $("pr-copy").addEventListener("click", () => copyText(summaryText(compute(state, state.pkg, state.term)), "Plan summary copied."));
     $("pr-link").addEventListener("click", () => copyText(location.href, "Link to this plan copied."));
-    $("pr-print").addEventListener("click", () => window.print());
+    // Final PDF: fields persist on this device only; print title becomes the suggested file name
+    $("pr-who").value = docState.who;
+    $("pr-notes").value = docState.notes;
+    $("pr-inc-features").checked = docState.features;
+    $("pr-inc-compare").checked = docState.compare;
+    $("pr-doc-form").addEventListener("input", () => {
+      docState = sanitizeDoc({ who: $("pr-who").value, notes: $("pr-notes").value, features: $("pr-inc-features").checked, compare: $("pr-inc-compare").checked });
+      NAPE.set(DOC_KEY, docState);
+      renderDoc(compute(state, state.pkg, state.term));
+    });
+    $("pr-doc-form").addEventListener("submit", (e) => e.preventDefault());
+    $("pr-save").addEventListener("click", () => {
+      const live = $("pr-doc-live"); if (live) live.textContent = "Opening the print dialog. Choose Save as PDF.";
+      window.print();
+    });
+    $("pr-to-final").addEventListener("click", (e) => {
+      e.preventDefault();
+      const f = $("pr-final");
+      f.scrollIntoView({ behavior: "smooth", block: "start" });
+      $("pr-who").focus({ preventScroll: true });
+    });
+    let savedTitle = null;
+    window.addEventListener("beforeprint", () => {
+      savedTitle = document.title;
+      const who = docState.who.trim().replace(/[^\w .,'&-]/g, "");
+      document.title = "NAPE Support Plan" + (who ? " - " + who : "");
+    });
+    window.addEventListener("afterprint", () => { if (savedTitle !== null) { document.title = savedTitle; savedTitle = null; } });
     $("pr-reset").addEventListener("click", () => {
       state = sanitize(null);
       renderControls(); $("pr-hours").value = 0; $("pr-budget").value = "";

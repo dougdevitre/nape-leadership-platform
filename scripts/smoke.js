@@ -98,6 +98,36 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   if (!hostileOk) throw new Error("/proposal: hostile hash state not sanitized");
   await page.evaluate(() => localStorage.clear());
 
+  // 1d. Final plan PDF: document reflects choices and escapes notes; toggles work; print shows only the document
+  await page.goto(`http://localhost:${PORT}/proposal#p=standard&t=3&g=roster&a=legal,sync&h=4&b=15000`);
+  await page.fill("#pr-who", "Jane <b>Smith</b>, Example County");
+  await page.fill("#pr-notes", 'Pilot first.\n<img src=x onerror="window.__pwned=1">');
+  const docHtml = await page.$eval("#pr-doc", el => el.innerHTML);
+  const docText = await page.$eval("#pr-doc", el => el.textContent);
+  if (!docText.includes("Support plan") || !docText.includes("Standard") || !docText.includes("Roster-checked sign-up")) throw new Error("/proposal: plan document missing selections");
+  if (!docText.includes("Jane <b>Smith</b>")) throw new Error("/proposal: prepared-for name not shown as literal text");
+  if (await page.$("#pr-doc img") || (await page.evaluate(() => window.__pwned))) throw new Error("/proposal: notes were not escaped");
+  if (!docText.includes("over your $15,000 budget")) throw new Error("/proposal: over-budget consideration missing");
+  if (!docText.includes("member accounts")) throw new Error("/proposal: progress-sync consideration/decision missing");
+  await page.uncheck("#pr-inc-compare");
+  if ((await page.$eval("#pr-doc", el => el.textContent)).includes("How your plan compares")) throw new Error("/proposal: compare toggle ignored");
+  await page.uncheck("#pr-inc-features");
+  if ((await page.$eval("#pr-doc", el => el.textContent)).includes("package covers")) throw new Error("/proposal: features toggle ignored");
+  await page.reload();
+  if ((await page.inputValue("#pr-who")) !== "Jane <b>Smith</b>, Example County") throw new Error("/proposal: prepared-for name not remembered on this device");
+  await page.emulateMedia({ media: "print" });
+  const hiddenInPrint = await page.evaluate(() => ["#pr-main", "#pr-compare", ".site-nav", "#pr-doc-form"].every(sel => getComputedStyle(document.querySelector(sel)).display === "none")
+    && getComputedStyle(document.getElementById("pr-doc")).display !== "none");
+  if (!hiddenInPrint) throw new Error("/proposal: print view should show only the plan document");
+  const pdf = await page.pdf({ preferCSSPageSize: true, printBackground: true });
+  if (pdf.length < 5000 || pdf.slice(0, 4).toString() !== "%PDF") throw new Error("/proposal: PDF was not produced");
+  await page.emulateMedia({ media: "screen" });
+  // clearing device data (Privacy page) also removes the saved name and notes
+  await page.evaluate(() => Object.values(NAPE.KEYS).forEach(k => localStorage.removeItem(k)));
+  await page.reload();
+  if ((await page.inputValue("#pr-who")) !== "") throw new Error("/proposal: prepared-for name survived clearing device data");
+  await page.evaluate(() => localStorage.clear());
+
   // 2. Importing a hostile plan file normalizes and renders cleanly
   await page.goto(`http://localhost:${PORT}/growth`);
   await page.evaluate(() => localStorage.clear());

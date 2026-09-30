@@ -16,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/styles.css">
+<style>@media print { @page { size: letter; margin: 0.5in; } }</style>
 </head>
 <body>
 
@@ -40,7 +41,7 @@
 
 <div class="proto-banner" role="note">Prototype preview — for demonstration and feedback only. Program details are subject to change and Board approval. <a href="/terms">Learn more</a></div>
 
-<section style="padding-top:56px">
+<section id="pr-main" style="padding-top:56px">
   <div class="wrap">
     <div class="section-head">
       <span class="banner-tag">Proposal</span>
@@ -106,10 +107,10 @@
         <h4>What you get</h4>
         <ul class="pr-gets" id="pr-gets"></ul>
         <div class="pr-actions no-print">
-          <a class="btn btn-gold" id="pr-mailto" href="#">Email this plan to Doug</a>
+          <a class="btn btn-gold" id="pr-to-final" href="#pr-final">Create my final PDF</a>
+          <a class="btn btn-outline btn-small" id="pr-mailto" href="#">Email summary to Doug</a>
           <button type="button" class="btn btn-outline btn-small" id="pr-copy">Copy summary</button>
           <button type="button" class="btn btn-outline btn-small" id="pr-link">Copy link</button>
-          <button type="button" class="btn btn-outline btn-small" id="pr-print">Print or save as PDF</button>
           <button type="button" class="btn btn-outline btn-small" id="pr-reset">Reset</button>
         </div>
         <p class="sr-only" id="pr-live" aria-live="polite"></p>
@@ -118,7 +119,7 @@
   </div>
 </section>
 
-<section style="padding-top:0">
+<section id="pr-compare" style="padding-top:0">
   <div class="wrap">
     <div class="section-head">
       <span class="banner-tag">Compare</span>
@@ -140,6 +141,41 @@
       </ul>
       <p class="pr-help" style="margin-top:12px">This page is a planning tool, not legal advice. Privacy, membership terms, and the handling of member reflections should be reviewed by NAPE's counsel.</p>
     </div>
+  </div>
+</section>
+
+<section id="pr-final" style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head no-print">
+      <span class="banner-tag">Final step</span>
+      <h2>Create your plan PDF</h2>
+      <p>The document below is built from your choices and updates as you change them. Add your name and any notes, then save it as a PDF to keep, share with your team, or send to Doug.</p>
+    </div>
+
+    <form class="card pr-final-tools no-print" id="pr-doc-form" autocomplete="off">
+      <div class="grid-2">
+        <div class="form-field">
+          <label for="pr-who">Prepared for</label>
+          <input type="text" id="pr-who" maxlength="120" placeholder="Your name and organization">
+        </div>
+        <div class="form-field">
+          <label for="pr-notes">Notes or questions for the kickoff call</label>
+          <textarea id="pr-notes" rows="3" maxlength="1500" placeholder="Anything you want on the record, such as constraints, must-haves, or questions."></textarea>
+        </div>
+      </div>
+      <div class="pr-checks">
+        <label><input type="checkbox" id="pr-inc-features" checked> Include the full list of what my package covers</label>
+        <label><input type="checkbox" id="pr-inc-compare" checked> Include the comparison of all options</label>
+      </div>
+      <div class="pr-actions">
+        <button type="button" class="btn btn-gold" id="pr-save">Save as PDF</button>
+        <a class="btn btn-outline" id="pr-mailto2" href="#">Email Doug about this plan</a>
+      </div>
+      <p class="pr-help" style="margin:12px 0 0">In the print dialog, choose &ldquo;Save as PDF.&rdquo; The document is built on this device and nothing is uploaded. To send it, attach the saved file to your email. The plan link inside the document lets Doug reopen your exact choices.</p>
+      <p class="sr-only" id="pr-doc-live" aria-live="polite"></p>
+    </form>
+
+    <article class="pr-paper" id="pr-doc" aria-label="Preview of your plan document"></article>
   </div>
 </section>
 

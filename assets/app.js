@@ -16,7 +16,9 @@ const NAPE = {
     REFLECTIONS: "nape_reflections_v1",
     STAGE: "nape_stage_v1",
     PROFILE: "nape_profile_v1",
-    BACKUP: "nape_backup_v1"
+    BACKUP: "nape_backup_v1",
+    PROPOSAL: "nape_proposal_v1",
+    PROPOSAL_DOC: "nape_proposal_doc_v1"
   }
 };
 
