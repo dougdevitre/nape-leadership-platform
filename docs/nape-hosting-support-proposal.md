@@ -2,7 +2,7 @@
 
 **Status:** DRAFT for leadership review. Bracketed items `[ ]` are placeholders to fill in before sending.
 **Prepared for:** NAPE leadership team
-**Prepared by:** [Your name / company]
+**Prepared by:** Doug Devitre · dougdevitre@gmail.com · 314.496.5973 · linkedin.com/in/dougdevitre
 **Date:** [date]
 
 ---
