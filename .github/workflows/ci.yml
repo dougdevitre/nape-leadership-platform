@@ -23,6 +23,7 @@ jobs:
           node --check assets/app.js
           node --check assets/connections.js
           node --check assets/media.js
+          node --check assets/proposal.js
       - name: Install Playwright
         run: |
           npm install --no-save playwright@1.56.1

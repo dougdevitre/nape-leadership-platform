@@ -15,6 +15,7 @@ reflections.html    Guided journal with stats, filters, edit
 resources.html      Program features + one-tap practice library
 connect.html        Partner-connection tool (directory from Airtable, outreach campaigns kept on device) + interest form (posts to /api/interest)
 media.html          Media Studio: goal/audience/shared-goal purpose panel (Shared Goals field in Airtable "Category Profiles"), NotebookLM prompt generator, social post + image generator (canvas PNG), print-ready PDF one-pagers, a per-resource kit checklist, and an opt-in "Tell NAPE what you published" share (posts to /api/media); detects saved Connect campaigns and aligns content to them
+proposal.html       Proposal (not in the nav; share the /proposal link directly): interactive support-plan calculator (term, package, member-access model, add-ons, optional budget) with live totals, a compare matrix, shareable link, and a final step that builds a print-ready plan document (prepared-for name, notes, optional sections) the user saves as a PDF from the browser's print dialog; nothing is uploaded. Prices are illustrative placeholders in `PRICING` at the top of assets/proposal.js (set `illustrative: false` once real). Marked noindex
 report.html         Print-ready growth report (browser "Save as PDF"; data stays on device)
 certificate.html    Print-ready certificate (participation / progress / completion, landscape)
 privacy.html        Privacy Notice (local-only data, form data, providers, clear-data button)
@@ -27,6 +28,7 @@ api/agencies.js     Serverless function ← Airtable "Resource Links", "Sponsors
 api/media.js        Serverless function → Airtable "Published Media" table in the directory base (opt-in "I published this" notes from the Media page, so NAPE can reshare member content; needs write scope on the directory base)
 assets/agencies.json Snapshot of the partner directory, used when /api/agencies is unavailable
 assets/connections.js Partner-connection tool engine (Connect page): directory loading, mutual-support map, campaign sequences
+assets/proposal.js  Proposal calculator: pricing config + math, state in URL hash/localStorage, budget best-fit, compare tables
 assets/media.js     Media Studio engine (Media page): directory loading, prompt/post generators, canvas image renderer, PDF one-pager builder
 assets/app.js       Shared storage (localStorage), nav hydration, toast, starter-goal engine
 assets/styles.css   Design system (navy/teal/gold, Fraunces + Public Sans)
