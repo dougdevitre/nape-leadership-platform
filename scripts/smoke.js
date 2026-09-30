@@ -33,7 +33,10 @@ const server = http.createServer((req, res) => {
   }
 }).listen(PORT);
 
-const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connect", "/media"];
+// Mirrors PRICING in assets/proposal.js (illustrative values); keep in sync when prices change.
+const PRICING_CHECK = { partner: 2750, invite: 4000 };
+
+const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/connect", "/media", "/proposal"];
 
 (async () => {
   const launchOpts = {};
@@ -71,6 +74,29 @@ const PAGES = ["/", "/journey", "/growth", "/reflections", "/resources", "/conne
   await page.click("#m-share-send");
   await page.waitForFunction(() => document.getElementById("m-share-status").textContent.includes("Thanks"));
   await page.unroute("**/api/media");
+
+  // 1c. Proposal calculator: totals follow the selections, budget flags fit, hostile URL state is sanitized
+  await page.goto(`http://localhost:${PORT}/proposal`);
+  await page.evaluate(() => localStorage.clear());
+  await page.goto(`http://localhost:${PORT}/proposal#p=partner&t=3&g=invite&a=&h=0&b=0`);
+  const feeds = await page.evaluate(() => ({ annual: document.getElementById("pr-annual").textContent, monthly: document.getElementById("pr-monthly").textContent, onetime: document.getElementById("pr-onetime").textContent }));
+  const expectMonthly = "$" + Math.round(PRICING_CHECK.partner * 0.9).toLocaleString("en-US");
+  if (feeds.monthly !== expectMonthly) throw new Error(`/proposal: monthly ${feeds.monthly} != ${expectMonthly}`);
+  if (feeds.onetime !== "$" + PRICING_CHECK.invite.toLocaleString("en-US")) throw new Error("/proposal: one-time cost wrong: " + feeds.onetime);
+  await page.check('input[name="addon"][value="sync"]');
+  const onetimeAfter = await page.textContent("#pr-onetime");
+  if (onetimeAfter === feeds.onetime) throw new Error("/proposal: add-on did not change one-time cost");
+  await page.fill("#pr-budget", "1000");
+  if (!(await page.textContent("#pr-budget-status")).includes("Over budget")) throw new Error("/proposal: over-budget message missing");
+  await page.fill("#pr-budget", "9000000");
+  if (!(await page.textContent("#pr-budget-status")).includes("Within budget")) throw new Error("/proposal: within-budget message missing");
+  if ((await page.$$("#pr-matrix td.fit")).length !== 9) throw new Error("/proposal: matrix should mark all 9 options as fitting a large budget");
+  await page.click('#pr-matrix [data-pick="essentials|1"]');
+  if ((await page.getAttribute('input[name="pkg"][value="essentials"]', "checked")) === null) throw new Error("/proposal: matrix pick did not select package");
+  await page.goto(`http://localhost:${PORT}/proposal#p=%3Cimg%20src%3Dx%3E&t=99&g=nope&a=bogus&h=9999&b=-5`);
+  const hostileOk = await page.evaluate(() => !document.querySelector("#pr-terms img, #pr-summary img") && document.getElementById("pr-hours-out").textContent === "20");
+  if (!hostileOk) throw new Error("/proposal: hostile hash state not sanitized");
+  await page.evaluate(() => localStorage.clear());
 
   // 2. Importing a hostile plan file normalizes and renders cleanly
   await page.goto(`http://localhost:${PORT}/growth`);

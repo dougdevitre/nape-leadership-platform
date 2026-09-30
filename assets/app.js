@@ -145,10 +145,10 @@ function napeAddGoal(stage, title, milestones, targetDate) {
 (function initFeedback() {
   if (!document.querySelector(".site-nav")) return;
 
-  const PAGE_MAP = { "": "Home", "index": "Home", "journey": "Journey", "growth": "Growth Plan", "reflections": "Reflections", "resources": "Resources", "connect": "Connect", "media": "Media" };
+  const PAGE_MAP = { "": "Home", "index": "Home", "journey": "Journey", "growth": "Growth Plan", "reflections": "Reflections", "resources": "Resources", "connect": "Connect", "media": "Media", "proposal": "Proposal" };
   const seg = (location.pathname.split("/").pop() || "").replace(/\.html$/, "");
   const current = Object.hasOwn(PAGE_MAP, seg) ? PAGE_MAP[seg] : "General";
-  const PAGES = ["Home", "Journey", "Growth Plan", "Reflections", "Resources", "Connect", "Media", "General"];
+  const PAGES = ["Home", "Journey", "Growth Plan", "Reflections", "Resources", "Connect", "Media", "Proposal", "General"];
   const TYPES = ["Bug", "Content", "Design", "Idea", "Question"];
 
   const wrap = document.createElement("div");

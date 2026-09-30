@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposal — NAPE Leadership</title>
+<meta name="description" content="Build a hosting, maintenance, and administrator support plan for the NAPE Leadership platform and see what each option costs and includes.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1E2E4F">
+<meta property="og:site_name" content="NAPE Executive Leadership Experience">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Proposal — NAPE Leadership">
+<meta property="og:description" content="Build a hosting, maintenance, and administrator support plan for the NAPE Leadership platform and see what each option costs and includes.">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+
+<nav class="site-nav" aria-label="Main">
+  <div class="nav-inner">
+    <a class="nav-brand" href="/"><span class="mark">N</span>NAPE Leadership</a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/journey">Journey</a></li>
+      <li><a href="/growth">Growth Plan</a></li>
+      <li><a href="/reflections">Reflections</a></li>
+      <li><a href="/resources">Resources</a></li>
+      <li><a href="/connect">Connect</a></li>
+      <li><a href="/media">Media</a></li>
+      <li><a href="/proposal" class="active" aria-current="page">Proposal</a></li>
+      <li><a class="nav-progress" href="/growth"><span class="dot"></span><span data-progress>Start your plan</span></a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="proto-banner" role="note">Prototype preview — for demonstration and feedback only. Program details are subject to change and Board approval. <a href="/terms">Learn more</a></div>
+
+<section style="padding-top:56px">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="banner-tag">Proposal</span>
+      <h2>Build your support plan</h2>
+      <p>Choose a term, a package, and how members get access. The estimate updates as you go and shows what each choice includes. Nothing is sent anywhere until you choose to email the plan.</p>
+    </div>
+
+    <div class="pr-notice" id="pr-illustrative" role="note"><b>Illustrative pricing.</b> The figures on this page are placeholders for planning. Final pricing is confirmed in a statement of work. Clerk, Vercel, and Airtable subscriptions are billed by those vendors and are not included.</div>
+
+    <div class="pr-layout">
+      <form id="pr-form" class="pr-steps" autocomplete="off">
+
+        <div class="card pr-step">
+          <h3><span class="pr-num">1</span> Term</h3>
+          <p class="pr-help">Longer terms lower the service rate and hold it steady.</p>
+          <div class="opt-grid three" id="pr-terms" role="radiogroup" aria-label="Term"></div>
+        </div>
+
+        <div class="card pr-step">
+          <h3><span class="pr-num">2</span> Package</h3>
+          <p class="pr-help">Monthly service fee at your chosen term. Every package includes hosting, monitoring, patching, backups, and bug fixes.</p>
+          <div class="opt-grid three" id="pr-packages" role="radiogroup" aria-label="Package"></div>
+        </div>
+
+        <div class="card pr-step">
+          <h3><span class="pr-num">3</span> How members get access</h3>
+          <p class="pr-help">One-time build for the members-only login. This choice changes cost the most.</p>
+          <div class="opt-grid" id="pr-gating" role="radiogroup" aria-label="Member access model"></div>
+        </div>
+
+        <div class="card pr-step">
+          <h3><span class="pr-num">4</span> Optional add-ons</h3>
+          <p class="pr-help">One-time items. Add only what you need.</p>
+          <div class="opt-grid" id="pr-addons"></div>
+          <div class="pr-hours">
+            <label for="pr-hours">Extra enhancement hours per month: <b id="pr-hours-out">0</b></label>
+            <input type="range" id="pr-hours" min="0" max="20" step="1" value="0" aria-describedby="pr-hours-help">
+            <p class="pr-help" id="pr-hours-help">Added to your package's included hours at <span id="pr-hours-rate"></span> per hour.</p>
+          </div>
+        </div>
+
+        <div class="card pr-step">
+          <h3><span class="pr-num">5</span> Your budget <span class="pr-opt">(optional)</span></h3>
+          <div class="form-field">
+            <label for="pr-budget">Most you would like to spend per year</label>
+            <input type="number" id="pr-budget" inputmode="numeric" min="0" step="500" placeholder="For example 25000" aria-describedby="pr-budget-help">
+            <p class="pr-help" id="pr-budget-help">We compare it to the average yearly cost, with one-time costs spread across the term.</p>
+          </div>
+        </div>
+      </form>
+
+      <aside class="pr-summary card" aria-labelledby="pr-sum-h">
+        <h3 id="pr-sum-h">Your estimate</h3>
+        <div class="pr-big"><span id="pr-annual">$0</span><small>per year, on average</small></div>
+        <div id="pr-budget-status" class="bud" hidden aria-live="polite"></div>
+        <dl class="pr-lines">
+          <div><dt>Monthly service</dt><dd id="pr-monthly">$0</dd></div>
+          <div><dt>One-time build and add-ons</dt><dd id="pr-onetime">$0</dd></div>
+          <div><dt>First-year cost</dt><dd id="pr-first">$0</dd></div>
+          <div class="strong"><dt id="pr-total-label">Total</dt><dd id="pr-total">$0</dd></div>
+        </dl>
+        <p class="pr-savings" id="pr-savings"></p>
+        <h4>What you get</h4>
+        <ul class="pr-gets" id="pr-gets"></ul>
+        <div class="pr-actions no-print">
+          <a class="btn btn-gold" id="pr-mailto" href="#">Email this plan to Doug</a>
+          <button type="button" class="btn btn-outline btn-small" id="pr-copy">Copy summary</button>
+          <button type="button" class="btn btn-outline btn-small" id="pr-link">Copy link</button>
+          <button type="button" class="btn btn-outline btn-small" id="pr-print">Print or save as PDF</button>
+          <button type="button" class="btn btn-outline btn-small" id="pr-reset">Reset</button>
+        </div>
+        <p class="sr-only" id="pr-live" aria-live="polite"></p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="banner-tag">Compare</span>
+      <h2>Every option at a glance</h2>
+      <p id="pr-matrix-note"></p>
+    </div>
+    <div class="pr-table-wrap"><table class="pr-table" id="pr-matrix"></table></div>
+
+    <h3 style="margin:36px 0 12px">What each package includes</h3>
+    <div class="pr-table-wrap"><table class="pr-table pr-feat" id="pr-features"></table></div>
+
+    <div class="card" style="margin-top:32px">
+      <h3 style="margin-bottom:8px">Decisions to settle at kickoff</h3>
+      <ul class="pr-decisions">
+        <li><b>How people become members.</b> Invite, roster check, or dues-linked. It sets the one-time build cost.</li>
+        <li><b>Where membership truth lives.</b> In the login system only, or synced from NAPE's own membership records.</li>
+        <li><b>Where progress is kept.</b> On each member's device as today, or in member accounts (needs privacy and legal review).</li>
+        <li><b>Who administers access.</b> A named administrator and a backup.</li>
+      </ul>
+      <p class="pr-help" style="margin-top:12px">This page is a planning tool, not legal advice. Privacy, membership terms, and the handling of member reflections should be reviewed by NAPE's counsel.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="tagline">Strong leaders. Stronger organizations. Stronger communities.</p>
+    <p>NAPE Executive Leadership Experience — coming soon</p>
+    <p class="foot-legal">This is a prototype for demonstration and feedback — not a live NAPE program. <a href="/privacy">Privacy Notice</a> · <a href="/terms">Terms &amp; Disclaimers</a></p>
+  </div>
+</footer>
+
+<script src="assets/app.js"></script>
+<script src="assets/proposal.js"></script>
+</body>
+</html>
