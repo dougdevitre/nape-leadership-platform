@@ -24,7 +24,7 @@
 | **Studio voice** (ElevenLabs via `/api/tts`) | Key and voice id are set in Vercel and `TTS_PROVIDER` is not `browser` | Only the curated block text, by id, from the server to ElevenLabs; the browser sends only the id | Per character, bounded (see §5) |
 | **Browser voice** (Web Speech API) | Always available as the fallback; the only tier in phase 0 | No | None |
 
-The player tries the tiers in that order and falls back silently. The provider badge on the control tells the member which voice is playing.
+The player tries the tiers in that order and falls back silently. The provider badge on the control tells the member which voice is playing. Before using a static file the player re-hashes the block's spoken text and compares it with the manifest entry, so stale audio is never played after a copy edit; the block simply falls through to the next tier until the audio is re-rendered.
 
 ## 4. Environment variables (Vercel project settings)
 
@@ -42,7 +42,8 @@ Set ElevenLabs variables on the **Preview** environment first (phase 1) and only
 ## 5. Abuse and cost guardrails (server)
 
 1. **Allowlist by content id.** `/api/tts` only synthesizes ids that appear in the committed allowlist generated from the pages (`node scripts/build-audio.js --dry-run --write-allowlist`). The request carries an id, never free text. Unknown ids get `404`; the player then uses the browser voice. This is what makes the endpoint useless as a general TTS API.
-2. **GET by id, cached at the edge.** Because an id is a hash of the exact text, voice and model, the audio for it never changes. Responses carry `Cache-Control: public, max-age=86400, s-maxage=31536000, immutable`, so Vercel's CDN serves repeat plays and ElevenLabs is called about once per block per edge region. Worst-case spend per deploy ≈ (number of allowlisted blocks) × (characters per block) × (regions), not proportional to member traffic.
+2. **GET by id plus text digest, cached at the edge.** A block has a stable id (for example `journey.stage.self`) and a digest of its exact spoken text. The request carries both; the server refuses the call unless the digest matches the allowlisted text for that id. Because the digest is part of the URL, a copy edit produces a new URL and the old cached audio can never be served for new text. Responses carry `Cache-Control: public, max-age=86400, s-maxage=31536000, immutable`, so Vercel's CDN serves repeat plays and ElevenLabs is called about once per block per edge region. Worst-case spend per deploy ≈ (number of allowlisted blocks) × (characters per block) × (regions), not proportional to member traffic.
+   The browser fetches the audio and plays it from a `blob:` URL (which is why the CSP gains `media-src blob:`): Safari needs seekable media, and a serverless function cannot answer Range requests. The per-block cap keeps each file around 1–2 MB, well under Vercel's 4.5 MB response limit.
 3. **Per-block cap.** `TTS_MAX_CHARS` (default 1,200) rejects any allowlisted block that grows past the cap, so a copy edit cannot create a 10,000-character render by accident.
 4. **Per-IP rate limit.** 20 synthesis requests per minute per IP (same in-memory pattern as `api/feedback.js`; a deterrent, not a guarantee). `429` on excess.
 5. **Upstream timeout.** 20-second `AbortController` timeout on the ElevenLabs call; `502` on failure, with no vendor response body echoed to the client or logs.
@@ -74,7 +75,8 @@ The production Content-Security-Policy lives in `vercel.json`; the smoke-test se
 | **0. Browser voice** (ships with the code) | Listen controls on the pilot blocks; Web Speech only; no env vars | Smoke test green; manual check on iOS Safari and Android Chrome; privacy notice updated | Remove `assets/tts.js` include (one-line revert) |
 | **1. Studio voice on Preview** | ElevenLabs env vars on the Vercel Preview environment only | Phase 0 stable for one week; ElevenLabs monthly cap set; allowlist committed and CI check green | Set `TTS_PROVIDER=browser` on Preview or delete the vars |
 | **2. Studio voice in Production** | Same env vars on Production | Preview pilot reviewed by NAPE staff (voice, pronunciation of "NAPE", pacing); spend observed for two weeks on Preview is within budget | Set `TTS_PROVIDER=browser` on Production (takes effect on next cold start, within minutes) |
-| **3. Static audio on CloudFront** | `scripts/build-audio.js` renders every allowlisted block once; files uploaded to S3 behind CloudFront; `TTS_AUDIO_BASE_URL` set; CSP `media-src` extended to that host | Phase 2 stable; runbook in `docs/tts-static-audio.md` followed; IAM uploader policy least-privilege | Unset `TTS_AUDIO_BASE_URL`; the player returns to tier 2/3 automatically |
+| **3a. Static audio from this site (optional interim)** | `scripts/build-audio.js` renders every allowlisted block once; the ~5 MB of pilot MP3s and the manifest are committed under `assets/audio/`; `TTS_AUDIO_BASE_URL=/assets/audio/` | Phase 2 stable; no AWS account or CSP change needed; ElevenLabs is no longer called at all for pilot blocks | Unset `TTS_AUDIO_BASE_URL`; the player returns to tier 2/3 automatically |
+| **3b. Static audio on CloudFront** | Same files uploaded to a private S3 bucket behind CloudFront with Origin Access Control; `TTS_AUDIO_BASE_URL` set to the exact CloudFront host; CSP `media-src` extended to that host only (no wildcard; no `crossorigin` attribute on the audio element) | Phase 3a stable or catalog too large for the repo; runbook in `docs/tts-static-audio.md` followed; IAM uploader policy least-privilege; CDN returns 206 with `Accept-Ranges` and `immutable` cache headers in the verification curl | Unset `TTS_AUDIO_BASE_URL`; the player returns to tier 2/3 automatically |
 
 ### Pilot scope (phase 0–2)
 
