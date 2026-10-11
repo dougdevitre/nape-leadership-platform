@@ -63,6 +63,10 @@ Set ElevenLabs variables on the **Preview** environment first (phase 1) and only
 
 A copy edit to a narrated block changes its id. That is intended (the old audio must not play for new text), but it quietly shifts that block from cached audio to a fresh ElevenLabs render, or to the browser voice if the allowlist was not regenerated. CI runs `node scripts/build-audio.js --dry-run --check` and **fails** when the committed allowlist no longer matches the pages, so the regeneration is a reviewed commit, never a surprise.
 
+## 7a. CSP guardrail in CI
+
+The production Content-Security-Policy lives in `vercel.json`; the smoke-test server has never sent it, so a CSP mistake passes CI and fails only in production (verified: with today's header, Chromium refuses both `blob:` audio and a CloudFront URL because `media-src` falls back to `default-src 'self'`). From the TTS change onward the smoke server reads the CSP string from `vercel.json`, sends it on every page, and the run fails on any console message containing "Content Security Policy". The header gains `media-src 'self' blob:` with the player, and the CloudFront host is added to `media-src` only in phase 3; `connect-src` stays `'self'` because the manifest is committed same-origin.
+
 ## 8. Rollout phases and gates
 
 | Phase | What is on | Gate to enter | Rollback |
@@ -78,7 +82,8 @@ The 20 "must" blocks, about 4,500 characters total: the three Journey stage pane
 
 ## 9. Go/no-go checklist before each phase
 
-- [ ] Smoke test green on the commit being deployed
+- [ ] Smoke test green on the commit being deployed, including the CSP-violation check (§7a)
+- [ ] Manual check on a real iPhone (Safari) and Android phone (Chrome): first play starts inside the tap, long blocks do not cut off at ~15 seconds, stop works (Android treats pause as cancel, so the control must not depend on resume)
 - [ ] Privacy Notice describes the tier being turned on
 - [ ] ElevenLabs workspace monthly character cap set (phases 1–3)
 - [ ] ElevenLabs plan permits this use: the Free plan is non-commercial and requires attribution, so the pilot runs on a paid tier (Starter or above)
