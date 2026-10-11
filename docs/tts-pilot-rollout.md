@@ -32,7 +32,7 @@ The player tries the tiers in that order and falls back silently. The provider b
 |---|---|---|
 | `ELEVENLABS_API_KEY` | Secret. Server only; never sent to the browser or logged | Enables the studio voice when present together with the voice id |
 | `ELEVENLABS_VOICE_ID` | Server only | The one voice used for all narration |
-| `ELEVENLABS_MODEL_ID` | Server only, optional | Model override; the function has a sensible default |
+| `ELEVENLABS_MODEL_ID` | Server only, optional | Model override. Default `eleven_multilingual_v2` (stable, 1 credit per character, supports the `speed` voice setting). `eleven_v4` is newer and higher quality but changes voice-setting support; switching models re-hashes and re-renders every block, so change it deliberately |
 | `TTS_PROVIDER` | Server only, optional | `auto` (default): studio voice when key and voice id are set, else browser. `browser`: **kill switch**, forces the browser voice without removing the key. |
 | `TTS_MAX_CHARS` | Server only, optional | Hard cap per block (default 1,200 characters); longer ids are refused |
 | `TTS_AUDIO_BASE_URL` | Phase 3 only | CloudFront base URL for pre-rendered audio |
@@ -47,8 +47,10 @@ Set ElevenLabs variables on the **Preview** environment first (phase 1) and only
 4. **Per-IP rate limit.** 20 synthesis requests per minute per IP (same in-memory pattern as `api/feedback.js`; a deterrent, not a guarantee). `429` on excess.
 5. **Upstream timeout.** 20-second `AbortController` timeout on the ElevenLabs call; `502` on failure, with no vendor response body echoed to the client or logs.
 6. **Vendor-side cap.** Before phase 1, set a monthly character limit on the ElevenLabs workspace (dashboard usage limits). Treat it as the last line of defense, not the first.
-7. **Logs carry no text.** Log id, status code, duration, and byte count only. Never the key, never block text, never member identifiers beyond the rate-limit IP bucket.
-8. **Status probe reveals nothing sensitive.** `GET /api/tts?status=1` returns `{ ok, provider: "elevenlabs" | "browser", blocks: <allowlist count> }`. No key, no voice id.
+7. **Logs carry no text.** Log id, status code, duration, byte count, and the billed character count ElevenLabs returns in its `x-character-count` response header. Never the key, never block text, never member identifiers beyond the rate-limit IP bucket.
+8. **Upstream 429 is not retried.** ElevenLabs limits by concurrent requests per plan (Free 2, Starter 3, Creator 5 for the multilingual model) and answers over-limit calls with `429`. The function passes that through as `503` with `Retry-After: 5` and never retries on its own, so a burst of first plays cannot multiply into a retry storm; the player falls back to the browser voice for that play.
+9. **Scoped key.** Create the ElevenLabs key with only the text-to-speech permission (keys are permission-scoped at creation and shown once). Rotate it by replacing the Vercel variable; no code change.
+10. **Status probe reveals nothing sensitive.** `GET /api/tts?status=1` returns `{ ok, provider: "elevenlabs" | "browser", blocks: <allowlist count> }`. No key, no voice id.
 
 ## 6. Privacy guardrails (client)
 
@@ -79,11 +81,21 @@ The 20 "must" blocks, about 4,500 characters total: the three Journey stage pane
 - [ ] Smoke test green on the commit being deployed
 - [ ] Privacy Notice describes the tier being turned on
 - [ ] ElevenLabs workspace monthly character cap set (phases 1–3)
+- [ ] ElevenLabs plan permits this use: the Free plan is non-commercial and requires attribution, so the pilot runs on a paid tier (Starter or above)
+- [ ] API key is scoped to text-to-speech only and stored only in Vercel
 - [ ] `TTS_PROVIDER` left unset or `auto` (so the kill switch is known to work: flip to `browser`, confirm the badge changes, flip back)
 - [ ] A named person owns the off switch and knows where it is
 - [ ] Pronunciation of "NAPE" confirmed by the owner (any change re-hashes every block that contains it)
 
-## 10. Open questions for the owner
+## 10. Verified against the ElevenLabs API contract
+
+The official documentation host is blocked from this build environment, so the API facts below were read from ElevenLabs' own generated SDKs (v2.71.0, October 2026) rather than the docs pages, and should be spot-checked against the docs once:
+
+- Endpoint `POST https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=mp3_44100_128`, header `xi-api-key`, JSON body `{ text, model_id, voice_settings }`, response is raw MP3 bytes. `mp3_44100_128` is the server default and needs no paid tier; `mp3_44100_192` needs Creator or above.
+- `GET /v1/voices/{voice_id}` validates the configured voice id (useful in the build script's preflight); `GET /v1/models` reports each model's `maximum_text_length_per_request`.
+- Determinism is best-effort only (`seed`), so re-rendering a block can produce slightly different audio; that is why audio is keyed by content id and rendered once, not on every play.
+
+## 11. Open questions for the owner
 
 1. Is "NAPE" spoken as a word or as letters? This sets the pronunciation map before the first render.
 2. Should legal pages ever be narratable (browser voice only)? Default: no.
